@@ -12,10 +12,13 @@ import { WidgetConfig } from '@/types/widget.type'
 import DaDialog from '@/components/molecules/DaDialog'
 import useCurrentModelApi from '@/hooks/useCurrentModelApi'
 import { calculateSpans } from '@/lib/utils'
+import { GoDotFill } from 'react-icons/go'
+import { cn } from '@/lib/utils'
 
 interface DaDashboardGridProps {
   widgetItems: any[]
   appLog?: string
+  showLiveIndicator?: boolean
 }
 
 interface PropsWidgetItem {
@@ -149,12 +152,14 @@ const WidgetItem: FC<PropsWidgetItem> = ({
   )
 }
 
-const DaDashboardGrid: FC<DaDashboardGridProps> = ({ widgetItems }) => {
+const DaDashboardGrid: FC<DaDashboardGridProps> = ({
+  widgetItems,
+  showLiveIndicator = true,
+}) => {
   const [showModal, setShowModal] = useState(false)
   const [payload, setPayload] = useState<any>()
   const { data: cvi } = useCurrentModelApi()
-  
-  // Memoize VSS tree to prevent unnecessary re-renders with large data
+
   const memoizedVssTree = useMemo(() => cvi, [cvi])
 
   const [apisValue, traceVars, appLog] = useRuntimeStore((state) => [
@@ -164,6 +169,16 @@ const DaDashboardGrid: FC<DaDashboardGridProps> = ({ widgetItems }) => {
   ])
 
   const [allVars, setAllVars] = useState<any>({})
+  const hasLiveData =
+    (typeof apisValue === 'object' &&
+      apisValue !== null &&
+      !Array.isArray(apisValue) &&
+      Object.keys(apisValue).length > 0) ||
+    (Array.isArray(apisValue) && apisValue.length > 0) ||
+    (typeof traceVars === 'object' &&
+      traceVars !== null &&
+      Object.keys(traceVars).length > 0) ||
+    (typeof appLog === 'string' && appLog.trim().length > 0)
 
   useEffect(() => {
     setAllVars({ ...traceVars, ...apisValue })
@@ -228,7 +243,19 @@ const DaDashboardGrid: FC<DaDashboardGridProps> = ({ widgetItems }) => {
           )}
         </div>
       </DaDialog>
-      <div className={`grid h-full w-full grid-cols-5 grid-rows-2`}>
+      <div className="relative h-full w-full">
+        {showLiveIndicator && hasLiveData && (
+          <div
+            className={cn(
+              'absolute top-2 right-2 z-10 flex items-center gap-1 rounded-full bg-green-500/90 px-2 py-1 text-xs font-medium text-white shadow-sm',
+            )}
+            title="Widgets are receiving live data from running code"
+          >
+            <GoDotFill className="h-2 w-2 animate-pulse" />
+            Live
+          </div>
+        )}
+        <div className={`grid h-full w-full grid-cols-5 grid-rows-2`}>
         {(() => {
           const renderedWidgets = new Set<number>()
           return CELLS.map((cell) => {
@@ -260,6 +287,7 @@ const DaDashboardGrid: FC<DaDashboardGridProps> = ({ widgetItems }) => {
             return null
           })
         })()}
+        </div>
       </div>
     </>
   )

@@ -6,12 +6,12 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/atoms/button'
-import { HiPlus } from 'react-icons/hi'
+import { HiPlus, HiArrowLeft } from 'react-icons/hi'
 import DaDialog from '@/components/molecules/DaDialog'
 import FormCreateModel from '@/components/molecules/forms/FormCreateModel'
-import { TbLoader, TbPackageExport } from 'react-icons/tb'
+import { TbLoader, TbPackageExport, TbSteeringWheel } from 'react-icons/tb'
 import DaImportFile from '@/components/atoms/DaImportFile'
 import { zipToModel } from '@/lib/zipUtils'
 import { createModelService } from '@/services/model.service'
@@ -20,83 +20,52 @@ import { ModelCreate, Prototype } from '@/types/model.type'
 import useSelfProfileQuery from '@/hooks/useSelfProfile'
 import { addLog } from '@/services/log.service'
 import { useNavigate } from 'react-router-dom'
-import DaTabItem from '@/components/atoms/DaTabItem'
 import DaSkeletonGrid from '@/components/molecules/DaSkeletonGrid'
 import { Skeleton } from '@/components/atoms/skeleton'
 import DaModelItem from '@/components/molecules/DaModelItem'
 import { Link } from 'react-router-dom'
 import { ModelLite } from '@/types/model.type'
 import useListAllModels from '@/hooks/useListAllModel'
+import useListBrands from '@/hooks/useListBrands'
+import { Brand } from '@/types/brand.type'
 
 const PageModelList = () => {
   const navigate = useNavigate()
   const [isImporting, setIsImporting] = useState(false)
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
 
-  const { data: user, isLoading: userLoading } = useSelfProfileQuery()
+  const { data: user } = useSelfProfileQuery()
+  const { data: brands = [], isLoading: brandsLoading } = useListBrands()
 
-  // Single hook that returns all model types
-  // This query should run even for unauthenticated users (backend supports PUBLIC_VIEWING)
+  // Fetch models only when a brand is selected
   const {
     data,
-    isLoading,
-    error,
+    isLoading: modelsLoading,
     refetch: refetchAllModels,
-  } = useListAllModels()
+  } = useListAllModels(selectedBrand?.id ?? null)
 
-  // Log errors for debugging
-  if (error) {
-    console.error('[PageModelList] Error loading models:', error)
-  }
-
-  // In case `data` isn't ready, destructure safely
   const {
     ownedModels = [],
     contributedModels = [],
     publicReleasedModels = [],
   } = data || {}
 
-  // Overlap filtering
-  const userOwnedIds = ownedModels.map((m) => m.id)
-  const userContributedIds = contributedModels.map((m) => m.id)
-
-  // Remove any public models that the user owns or contributes to
-  const filteredPublic = !user
-    ? publicReleasedModels
-    : publicReleasedModels.filter(
-        (m) =>
-          !userOwnedIds.includes(m.id) && !userContributedIds.includes(m.id),
-      )
-
-  // Remove from 'my contributions' any that are actually owned
-  const filteredContributions = contributedModels.filter(
-    (m) => !userOwnedIds.includes(m.id),
-  )
-
-  // Refs for scrolling
-  const myModelRef = useRef<HTMLDivElement>(null)
-  const myContributionRef = useRef<HTMLDivElement>(null)
-  const publicRef = useRef<HTMLDivElement>(null)
-
-  // If user not logged in, default tab is "public"
-  const [activeTab, setActiveTab] = useState<
-    'myModel' | 'myContribution' | 'public'
-  >(user ? 'myModel' : 'public')
-
-  // Handle tab click -> scroll to respective section
-  const handleTabClick = (tab: 'myModel' | 'myContribution' | 'public') => {
-    setActiveTab(tab)
-    switch (tab) {
-      case 'myModel':
-        myModelRef.current?.scrollIntoView({ behavior: 'smooth' })
-        break
-      case 'myContribution':
-        myContributionRef.current?.scrollIntoView({ behavior: 'smooth' })
-        break
-      case 'public':
-        publicRef.current?.scrollIntoView({ behavior: 'smooth' })
-        break
-    }
-  }
+  // Combine all models for the selected brand, with Base Model first
+  const combined = [
+    ...ownedModels,
+    ...contributedModels.filter((m) => !ownedModels.find((o) => o.id === m.id)),
+    ...publicReleasedModels.filter(
+      (m) =>
+        !ownedModels.find((o) => o.id === m.id) &&
+        !contributedModels.find((c) => c.id === m.id),
+    ),
+  ]
+  const allModels = [...combined].sort((a, b) => {
+    // Base Model always appears first
+    if (a.is_base_model && !b.is_base_model) return -1
+    if (!a.is_base_model && b.is_base_model) return 1
+    return 0
+  })
 
   const handleImportModelZip = async (file: File) => {
     const model = await zipToModel(file)
@@ -123,11 +92,11 @@ const PageModelList = () => {
         extended_apis: importedModel.model.extended_apis || [],
         api_version: importedModel.model.api_version || 'v4.1',
         visibility: 'private',
+        brand_id: selectedBrand?.id || null,
       }
 
       const createdModel = await createModelService(newModel)
 
-      // Log
       addLog({
         name: `New model '${createdModel.name}' with visibility: ${createdModel.visibility}`,
         description: `New model '${createdModel.name}' was created by ${
@@ -139,16 +108,12 @@ const PageModelList = () => {
         ref_type: 'model',
       })
 
-      // Prototypes if any
       if (importedModel.prototypes.length > 0) {
         const prototypePromises = importedModel.prototypes.map(
           async (proto: Partial<Prototype>) => {
             const newPrototype: Partial<Prototype> = {
               state: proto.state || 'development',
-              apis: {
-                VSS: [],
-                VSC: [],
-              },
+              apis: { VSS: [], VSC: [] },
               code: proto.code || '',
               widget_config: proto.widget_config || '{}',
               description: proto.description,
@@ -166,7 +131,6 @@ const PageModelList = () => {
         await Promise.all(prototypePromises)
       }
 
-      // Refetch model list and navigate
       await refetchAllModels()
       navigate(`/model/${createdModel}`)
     } catch (err) {
@@ -176,175 +140,171 @@ const PageModelList = () => {
     }
   }
 
-  // Tabs
-  const tabItems = user
-    ? [
-        { title: 'My Models', value: 'myModel', count: ownedModels.length },
-        {
-          title: 'My Contributions',
-          value: 'myContribution',
-          count: filteredContributions.length,
-        },
-        { title: 'Public', value: 'public', count: filteredPublic.length },
-      ]
-    : [{ title: 'Public', value: 'public', count: filteredPublic.length }]
+  // If no brand selected, show brand selection view
+  if (!selectedBrand) {
+    return (
+      <div className="flex flex-col w-full h-full relative">
+        <div className="sticky top-0 flex min-h-[52px] items-center border-b border-muted-foreground/50 bg-background z-50 px-4">
+          <h1 className="text-lg font-semibold text-primary">
+            Select a Car Brand
+          </h1>
+        </div>
 
+        <div className="flex w-full h-[calc(100%-52px)] items-start bg-slate-200 p-2">
+          <div className="flex flex-col w-full h-full bg-background rounded-lg overflow-y-auto">
+            <div className="flex flex-col w-full container px-4 py-6">
+              <p className="text-sm text-muted-foreground mb-6">
+                Choose a car brand to view and create prototypes for its vehicle
+                models.
+              </p>
+
+              {brandsLoading ? (
+                <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-[180px] rounded-lg" />
+                  ))}
+                </div>
+              ) : brands.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <TbSteeringWheel className="text-6xl text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    No car brands available. Please run the seed script first.
+                  </p>
+                  <code className="mt-2 text-sm bg-muted px-3 py-1 rounded">
+                    yarn seed:brands
+                  </code>
+                </div>
+              ) : (
+                <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {brands.map((brand) => (
+                    <div
+                      key={brand.id}
+                      onClick={() => setSelectedBrand(brand)}
+                      className="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20 rounded-xl cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-200 group"
+                    >
+                      {brand.logo_url ? (
+                        <img
+                          src={brand.logo_url}
+                          alt={brand.name}
+                          className="h-20 w-20 object-contain mb-4"
+                        />
+                      ) : (
+                        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                          <TbSteeringWheel className="text-4xl text-primary" />
+                        </div>
+                      )}
+                      <h3 className="text-xl font-bold text-primary">
+                        {brand.name}
+                      </h3>
+                      {brand.description && (
+                        <p className="text-sm text-muted-foreground mt-2 text-center">
+                          {brand.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Brand is selected - show vehicle models under that brand
   return (
     <div className="flex flex-col w-full h-full relative">
-      {/* Tabs Bar */}
-      <div className="sticky top-0 flex min-h-[52px] border-b border-muted-foreground/50 bg-background z-50">
-        {isLoading ? (
-          <div className="flex items-center h-full space-x-6 px-4">
-            {tabItems.map((_, index) => (
-              <Skeleton key={index} className="w-[100px] h-6" />
-            ))}
-          </div>
-        ) : (
-          tabItems.map((tab, index) => (
-            <DaTabItem
-              key={index}
-              active={activeTab === tab.value}
-              onClick={() => handleTabClick(tab.value as typeof activeTab)}
-            >
-              {tab.title}
-              <div className="flex min-w-5 px-1.5 py-0.5 items-center justify-center text-xs ml-1 bg-gray-200 rounded-md">
-                {tab.count}
-              </div>
-            </DaTabItem>
-          ))
-        )}
+      <div className="sticky top-0 flex min-h-[52px] items-center gap-4 border-b border-muted-foreground/50 bg-background z-50 px-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSelectedBrand(null)}
+          className="flex items-center gap-1"
+        >
+          <HiArrowLeft className="text-lg" />
+          Back
+        </Button>
+        <div className="flex items-center gap-2">
+          {selectedBrand.logo_url ? (
+            <img
+              src={selectedBrand.logo_url}
+              alt={selectedBrand.name}
+              className="h-8 w-8 object-contain"
+            />
+          ) : (
+            <TbSteeringWheel className="text-2xl text-primary" />
+          )}
+          <h1 className="text-lg font-semibold text-primary">
+            {selectedBrand.name} - Vehicle Models
+          </h1>
+        </div>
       </div>
 
       <div className="flex w-full h-[calc(100%-52px)] items-start bg-slate-200 p-2">
         <div className="flex flex-col w-full h-full bg-background rounded-lg overflow-y-auto">
-          <div className="flex flex-col w-full h-full container px-4 pb-6">
-            {user && (
-              <div className="flex flex-col w-full h-fit pt-6" ref={myModelRef}>
-                <div className="flex w-full items-center justify-between mb-4">
-                  <p className="text-sm font-medium text-primary">
-                    Select a vehicle model to start
-                  </p>
-                  <div className="flex">
-                    {!isImporting ? (
-                      <DaImportFile
-                        accept=".zip"
-                        onFileChange={handleImportModelZip}
+          <div className="flex flex-col w-full container px-4 py-6">
+            <div className="flex w-full items-center justify-between mb-6">
+              <p className="text-sm text-muted-foreground">
+                Select a vehicle model to create prototypes and run simulations.
+              </p>
+              {user && (
+                <div className="flex gap-2">
+                  {!isImporting ? (
+                    <DaImportFile
+                      accept=".zip"
+                      onFileChange={handleImportModelZip}
+                    >
+                      <Button variant="outline" size="sm">
+                        <TbPackageExport className="mr-1 text-lg" />
+                        Import Model
+                      </Button>
+                    </DaImportFile>
+                  ) : (
+                    <p className="flex items-center text-base text-muted-foreground">
+                      <TbLoader className="animate-spin text-lg mr-2" />
+                      Importing model ...
+                    </p>
+                  )}
+                  <DaDialog
+                    trigger={
+                      <Button
+                        variant="default"
+                        size="sm"
+                        data-id="btn-open-form-create"
                       >
-                        <Button variant="outline" size="sm" className="mr-2">
-                          <TbPackageExport className="mr-1 text-lg" /> Import
-                          Model
-                        </Button>
-                      </DaImportFile>
-                    ) : (
-                      <p className="flex items-center text-base text-muted-foreground mr-2">
-                        <TbLoader className="animate-spin text-lg mr-2" />
-                        Importing model ...
-                      </p>
-                    )}
-                    <DaDialog
-                      trigger={
-                        <Button
-                          variant="default"
-                          size="sm"
-                          data-id="btn-open-form-create"
-                        >
-                          <HiPlus className="mr-1 text-lg" />
-                          Create New Model
-                        </Button>
-                      }
-                    >
-                      <FormCreateModel />
-                    </DaDialog>
-                  </div>
+                        <HiPlus className="mr-1 text-lg" />
+                        Add Vehicle Model
+                      </Button>
+                    }
+                  >
+                    <FormCreateModel defaultBrandId={selectedBrand.id} />
+                  </DaDialog>
                 </div>
-
-                {/* My Models */}
-                {ownedModels.length > 0 && (
-                  <div className="pt-6 h-fit">
-                    <h2 className="text-base font-semibold text-primary">
-                      My Models
-                    </h2>
-                    <DaSkeletonGrid
-                      maxItems={{ sm: 1, md: 2, lg: 3, xl: 3 }}
-                      className="mt-2"
-                      itemWrapperClassName="w-full grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
-                      primarySkeletonClassName="h-[270px]"
-                      secondarySkeletonClassName="hidden"
-                      data={ownedModels}
-                      isLoading={isLoading}
-                      emptyText="No models found. Please create a new model."
-                      emptyContainerClassName="h-[50%]"
-                    >
-                      <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 pb-4 mt-2">
-                        {ownedModels.map((model: ModelLite, index: number) => (
-                          <Link key={index} to={`/model/${model.id}`}>
-                            <DaModelItem
-                              model={model}
-                              className="my_model_grid_item"
-                            />
-                          </Link>
-                        ))}
-                      </div>
-                    </DaSkeletonGrid>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {user && filteredContributions.length > 0 && (
-              <div ref={myContributionRef} className="pt-6">
-                <h2 className="text-base font-semibold text-primary">
-                  My Contributions
-                </h2>
-                <DaSkeletonGrid
-                  maxItems={{ sm: 1, md: 2, lg: 3, xl: 3 }}
-                  className="mt-2"
-                  itemWrapperClassName="w-full grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
-                  primarySkeletonClassName="h-[270px]"
-                  secondarySkeletonClassName="hidden"
-                  data={filteredContributions}
-                  isLoading={isLoading}
-                  emptyText="No contributions found."
-                  emptyContainerClassName="h-[50%]"
-                >
-                  <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 pb-4 mt-2">
-                    {filteredContributions.map(
-                      (model: ModelLite, index: number) => (
-                        <Link key={index} to={`/model/${model.id}`}>
-                          <DaModelItem model={model} />
-                        </Link>
-                      ),
-                    )}
-                  </div>
-                </DaSkeletonGrid>
-              </div>
-            )}
-
-            {/* Public Models */}
-            <div ref={publicRef} className="py-6">
-              <h2 className="text-base font-semibold text-primary">Public</h2>
-              <DaSkeletonGrid
-                maxItems={{ sm: 1, md: 2, lg: 3, xl: 3 }}
-                className="mt-2"
-                itemWrapperClassName="w-full grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
-                primarySkeletonClassName="h-[270px]"
-                secondarySkeletonClassName="hidden"
-                data={filteredPublic}
-                isLoading={isLoading}
-                emptyText="No public models found."
-                emptyContainerClassName="h-[50%]"
-              >
-                {filteredPublic.length > 0 && (
-                  <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 pb-4 mt-2">
-                    {filteredPublic.map((model: ModelLite, index: number) => (
-                      <Link key={index} to={`/model/${model.id}`}>
-                        <DaModelItem model={model} />
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </DaSkeletonGrid>
+              )}
             </div>
+
+            <DaSkeletonGrid
+              maxItems={{ sm: 1, md: 2, lg: 3, xl: 3 }}
+              className="mt-2"
+              itemWrapperClassName="w-full grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+              primarySkeletonClassName="h-[270px]"
+              secondarySkeletonClassName="hidden"
+              data={allModels}
+              isLoading={modelsLoading}
+              emptyText={`No vehicle models found for ${selectedBrand.name}. Click "Add Vehicle Model" to create one.`}
+              emptyContainerClassName="h-[50%]"
+            >
+              {allModels.length > 0 && (
+                <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+                  {allModels.map((model: ModelLite, index: number) => (
+                    <Link key={index} to={`/model/${model.id}`}>
+                      <DaModelItem model={model} />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </DaSkeletonGrid>
           </div>
         </div>
       </div>

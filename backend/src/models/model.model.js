@@ -97,6 +97,15 @@ const modelSchema = new mongoose.Schema(
       ref: 'ModelTemplate',
       default: null,
     },
+    brand_id: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Brand',
+      default: null,
+    },
+    is_base_model: {
+      type: Boolean,
+      default: false,
+    },
     custom_template: {
       type: mongoose.SchemaTypes.Mixed,
       default: null,

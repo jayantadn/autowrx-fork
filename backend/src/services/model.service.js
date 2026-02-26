@@ -185,6 +185,9 @@ const queryModels = async (filter, options, advanced, userId) => {
   if (filter.created_by) {
     filter.created_by = new mongoose.Types.ObjectId(filter.created_by);
   }
+  if (filter.brand_id) {
+    filter.brand_id = new mongoose.Types.ObjectId(filter.brand_id);
+  }
 
   const pipeline = [{ $match: filter }];
 

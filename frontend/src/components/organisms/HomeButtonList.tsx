@@ -11,7 +11,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DaDialog from '../molecules/DaDialog'
 import { DaActionCard } from '../molecules/DaActionCard'
-import { FaCar } from 'react-icons/fa'
+import { TbSteeringWheel } from 'react-icons/tb'
 import FormCreateModel from '../molecules/forms/FormCreateModel'
 import { TbCode, TbPackageImport } from 'react-icons/tb'
 // import FormCreatePrototype from '../molecules/forms/FormCreatePrototype'
@@ -57,7 +57,7 @@ const HomeButtonList = ({ items, requiredLogin }: HomeButtonListProps) => {
                       content={button.description || 'Create a vehicle model'}
                       icon={
                         button.icon || (
-                          <FaCar className="h-7 w-7 text-primary" />
+                          <TbSteeringWheel className="h-7 w-7 text-primary" />
                         )
                       }
                       className="w-full"

@@ -132,7 +132,7 @@ select[aria-hidden='true'][tabindex='-1'] {
 
 .loading-bar {
   height: 100%;
-  background-color: #76c7c0;
+  background-color: #00877c;
   transition: width 0.3s ease-in-out;
 }
 
@@ -285,13 +285,13 @@ select[aria-hidden='true'][tabindex='-1'] {
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* digital.auto / Flow palette */
-  --color-da-primary-100: hsl(196 28% 92%);
-  --color-da-primary-300: hsl(198 28% 61%);
-  --color-da-primary-500: hsl(198 100% 22%);
-  --color-da-secondary-100: hsl(67 54% 92%);
-  --color-da-secondary-300: hsl(67 54% 68%);
-  --color-da-secondary-500: hsl(67 54% 48%);
+  /* digital.auto / Flow palette - Bosch logo (magenta #992972, teal #00877C) */
+  --color-da-primary-100: hsl(325 58% 95%);
+  --color-da-primary-300: hsl(325 58% 65%);
+  --color-da-primary-500: hsl(325 58% 38%);
+  --color-da-secondary-100: hsl(175 100% 95%);
+  --color-da-secondary-300: hsl(175 100% 45%);
+  --color-da-secondary-500: hsl(175 100% 26%);
   --color-da-white: hsl(0 0% 100%);
   --color-da-black: hsl(0 0% 0%);
   --color-da-gray-light: hsl(214 32% 91%);
@@ -300,14 +300,14 @@ select[aria-hidden='true'][tabindex='-1'] {
   --color-da-gray-darkest: hsl(217 33% 17%);
 }
 
-/* :root {
+:root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.4199 0.0374 257.28);
-  --primary: oklch(0.35 0.08 230);
+  --primary: oklch(0.48 0.17 338);
   --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.7626 0.1532 115.73);
-  --secondary-foreground: oklch(0.129 0.042 264.695);
+  --secondary: oklch(0.50 0.10 192);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
   --muted: oklch(0.968 0.007 247.896);
   --muted-foreground: oklch(0.554 0.046 257.417);
   --destructive: oklch(0.577 0.245 27.325);
@@ -315,15 +315,15 @@ select[aria-hidden='true'][tabindex='-1'] {
   --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
-} */
+}
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.4199 0.0374 257.28);
-  --primary: oklch(0.45 0.1 230);
+  --primary: oklch(0.58 0.17 338);
   --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.7626 0.1532 115.73);
-  --secondary-foreground: oklch(0.129 0.042 264.695);
+  --secondary: oklch(0.57 0.10 192);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
   --muted: oklch(0.279 0.041 260.031);
   --muted-foreground: oklch(0.704 0.04 256.788);
   --destructive: oklch(0.704 0.191 22.216);

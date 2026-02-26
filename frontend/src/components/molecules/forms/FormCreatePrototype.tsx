@@ -11,7 +11,9 @@ import { Input } from '@/components/atoms/input'
 import { Label } from '@/components/atoms/label'
 import { FormEvent, useEffect, useState } from 'react'
 import { TbCircleCheckFilled, TbLoader } from 'react-icons/tb'
+import { useQuery } from '@tanstack/react-query'
 import { createPrototypeService } from '@/services/prototype.service'
+import { getModel } from '@/services/model.service'
 import { useToast } from '../toaster/use-toast'
 import useListModelPrototypes from '@/hooks/useListModelPrototypes'
 import useCurrentModel from '@/hooks/useCurrentModel'
@@ -19,7 +21,8 @@ import { isAxiosError } from 'axios'
 import { addLog } from '@/services/log.service'
 import useSelfProfileQuery from '@/hooks/useSelfProfile'
 import { useNavigate, useLocation } from 'react-router-dom'
-import useListModelContribution from '@/hooks/useListModelContribution'
+import useListBrands from '@/hooks/useListBrands'
+import useListModelsByBrand from '@/hooks/useListModelsByBrand'
 import {
   Select,
   SelectContent,
@@ -156,9 +159,17 @@ const FormCreatePrototype = ({
   const [disabled, setDisabled] = disabledState ?? useState(false)
 
   const { data: currentModel } = useCurrentModel()
-  const { data: contributionModels, isLoading: isFetchingModelContribution } =
-    useListModelContribution()
+  const { data: brands = [] } = useListBrands()
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null)
+  const { data: modelsByBrand, isLoading: isFetchingModels } =
+    useListModelsByBrand(selectedBrandId)
   const [localModel, setLocalModel] = useState<ModelLite>()
+  const modelIdForTemplate = localModel?.id ?? currentModel?.id
+  const { data: modelWithTemplate } = useQuery({
+    queryKey: ['model', modelIdForTemplate],
+    queryFn: () => getModel(modelIdForTemplate!),
+    enabled: !!modelIdForTemplate,
+  })
   const { refetch } = useListModelPrototypes(
     currentModel ? currentModel.id : '',
   )
@@ -191,6 +202,13 @@ const FormCreatePrototype = ({
 
   const getDefaultDashboardCfg = (lang: string) => {
     if (lang == 'rust') return `{"autorun": false, "widgets": [] }`
+    const templateWidgetConfig = modelWithTemplate?.custom_template?.widget_config
+    if (templateWidgetConfig && typeof templateWidgetConfig === 'object') {
+      return JSON.stringify(templateWidgetConfig)
+    }
+    if (templateWidgetConfig && typeof templateWidgetConfig === 'string') {
+      return templateWidgetConfig
+    }
     return DEFAULT_DASHBOARD_CFG
   }
 
@@ -205,21 +223,17 @@ const FormCreatePrototype = ({
       let response
 
       if (localModel) {
-        // Scenario 1: `localModel` exists, use its ID
         modelId = localModel.id
-      } else if (data.modelName) {
-        // Scenario 2: `localModel` does not exist, create a new model
-        const modelBody: ModelCreate = {
-          main_api: data.mainApi,
-          name: data.modelName,
-          api_version: 'v4.1',
-        }
-
-        const newModelId = await createModelService(modelBody)
-        modelId = newModelId
+      } else if (currentModel) {
+        modelId = currentModel.id
       } else {
-        throw new Error('Model data is missing')
+        throw new Error('Please select a vehicle model')
       }
+
+      const modelImage =
+        localModel?.model_home_image_file ||
+        currentModel?.model_home_image_file ||
+        '/imgs/default_prototype_cover.jpg'
 
       const body = {
         model_id: modelId,
@@ -236,7 +250,7 @@ const FormCreatePrototype = ({
           solution: '',
           status: '',
         },
-        image_file: '/imgs/default_prototype_cover.jpg',
+        image_file: modelImage,
         skeleton: '{}',
         tags: [],
         widget_config:
@@ -303,21 +317,26 @@ const FormCreatePrototype = ({
       }
       setLocalModel({
         ...modelLite,
-        created_by: modelLite.created_by?.id || '',
+        created_by: (modelLite.created_by as any)?.id || modelLite.created_by,
       })
-    } else if (
-      contributionModels &&
-      !isFetchingModelContribution &&
-      contributionModels.results.length > 0
-    ) {
-      setLocalModel(contributionModels.results[0])
+    } else {
+      setLocalModel(undefined)
     }
-  }, [contributionModels, isFetchingModelContribution, currentModel])
+  }, [currentModel])
+
+  // Reset selected model when brand changes
+  useEffect(() => {
+    if (selectedBrandId) {
+      setLocalModel(undefined)
+    }
+  }, [selectedBrandId])
+
+  const modelsByBrandList = modelsByBrand?.results ?? []
 
   useEffect(() => {
-    if (loading || (!localModel && !data.modelName) || !data.prototypeName) {
-      setDisabled(true)
-    } else setDisabled(false)
+    const hasModel = !!localModel || !!data.modelName
+    const canSubmit = hasModel && data.prototypeName && !loading
+    setDisabled(!canSubmit)
     if (onPrototypeChange) {
       if (localModel) {
         onPrototypeChange({
@@ -344,50 +363,66 @@ const FormCreatePrototype = ({
         {title ?? 'New Prototype'}
       </h2>
 
-      {!currentModel &&
-        (contributionModels && !isFetchingModelContribution && localModel ? (
-          <div className="flex flex-col mt-4">
-            <Label className="mb-2">Model Name *</Label>
+      {!currentModel && (
+        <div className="flex flex-col gap-4 mt-4">
+          <div className="flex flex-col">
+            <Label className="mb-2">Car Brand *</Label>
             <Select
-              defaultValue={localModel.id}
-              onValueChange={(e: string) => {
-                const selectedModel = contributionModels.results.find(
-                  (model: ModelLite) => model.id === e,
-                )
-                selectedModel && setLocalModel(selectedModel)
-              }}
+              value={selectedBrandId ?? ''}
+              onValueChange={(v) => setSelectedBrandId(v || null)}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select brand" />
               </SelectTrigger>
               <SelectContent>
-                {contributionModels.results.map(
-                  (model: ModelLite, index: number) => (
-                    <SelectItem key={index} value={model.id}>
-                      {model.name}
-                    </SelectItem>
-                  ),
-                )}
+                {brands.map((brand) => (
+                  <SelectItem key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-        ) : isFetchingModelContribution ? (
-          <p className="mt-4 flex items-center text-base text-muted-foreground">
-            <Spinner className="mr-1 h-4 w-4" />
-            Loading vehicle model...
-          </p>
-        ) : (
-          <div className="flex flex-col mt-4">
-            <Label className="mb-2">Model Name *</Label>
-            <Input
-              name="name"
-              value={data.modelName}
-              onChange={(e) => handleChange('modelName', e.target.value)}
-              placeholder="Model name"
-              className="bg-background"
-            />
+          <div className="flex flex-col">
+            <Label className="mb-2">Vehicle Model *</Label>
+            {!selectedBrandId ? (
+              <p className="text-sm text-muted-foreground">
+                Select a brand first to see available models
+              </p>
+            ) : isFetchingModels ? (
+              <p className="flex items-center text-base text-muted-foreground">
+                <Spinner className="mr-1 h-4 w-4" />
+                Loading models...
+              </p>
+            ) : modelsByBrandList.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No models found for this brand. Create a model first from the model list.
+              </p>
+            ) : (
+              <Select
+                value={localModel?.id ?? ''}
+                onValueChange={(v) => {
+                  const selected = modelsByBrandList.find(
+                    (m: ModelLite) => m.id === v,
+                  )
+                  selected && setLocalModel(selected)
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select vehicle model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {modelsByBrandList.map((model: ModelLite) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
-        ))}
+        </div>
+      )}
 
       <div className="flex flex-col mt-4">
         <Label className="mb-2">Prototype Name *</Label>

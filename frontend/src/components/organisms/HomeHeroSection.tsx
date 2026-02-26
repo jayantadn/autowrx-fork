@@ -25,14 +25,14 @@ const HomeHeroSection = ({
     <>
       <div className="flex col-span-12 relative min-h-[400px] max-h-[400px] w-full justify-between z-10 overflow-hidden">
         {/* Gradient overlay - primary to secondary */}
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r z-10 from-primary/70 to-secondary/90"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r z-10 from-primary/70 to-secondary/90" />
 
         {image && (
           <img
-            className="w-full object-cover z-0 items-center justify-center"
+            className="w-full h-full object-cover object-left z-0"
             src={image}
-            alt="home-cover"
-          ></img>
+            alt="Vehicle platform"
+          />
         )}
 
         {(title || description) && (

@@ -92,6 +92,7 @@ const home = [
       },
     ],
   },
+  /*
   {
     type: 'news',
     title: 'Top News',
@@ -140,6 +141,7 @@ const home = [
       },
     ],
   },
+  */
   {
     type: 'recent',
     title: 'Recent Prototypes',
@@ -160,13 +162,13 @@ const home = [
             url: 'https://www.bosch.com/',
           },
           {
-            name: 'Dassault Systems',
-            img: '/imgs/partners/3ds-logo.svg',
-            url: 'https://www.3ds.com/',
+            name: 'Microsoft',
+            img: '/imgs/partners/microsoft-logo-4.png',
+            url: 'https://www.microsoft.com/en-in',
           },
         ],
       },
-      {
+      /*{
         title: 'Standards & Open Source',
         items: [
           {
@@ -191,8 +193,10 @@ const home = [
           },
         ],
       },
+      */
     ],
   },
+  
 ]
 
 export default home

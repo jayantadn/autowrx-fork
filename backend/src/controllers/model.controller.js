@@ -89,6 +89,7 @@ const listModels = catchAsync(async (req, res) => {
     'tenant_id',
     'vehicle_category',
     'main_api',
+    'brand_id',
     'id',
     'created_by',
   ]);
@@ -100,10 +101,12 @@ const listModels = catchAsync(async (req, res) => {
 
 const listAllModels = catchAsync(async (req, res) => {
   const options = pick(req.query, ['fields']);
+  const brandFilter = req.query.brand_id ? { brand_id: req.query.brand_id } : {};
 
   const ownedModels = await modelService.queryModels(
     {
       created_by: req.user?.id,
+      ...brandFilter,
     },
     {
       ...options,
@@ -115,7 +118,7 @@ const listAllModels = catchAsync(async (req, res) => {
 
   const contributedModels = req.user?.id
     ? await modelService.queryModels(
-        {},
+        { ...brandFilter },
         {
           ...options,
           limit: 1000,
@@ -131,6 +134,7 @@ const listAllModels = catchAsync(async (req, res) => {
     {
       visibility: 'public',
       state: 'released',
+      ...brandFilter,
     },
     {
       ...options,

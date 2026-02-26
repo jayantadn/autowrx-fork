@@ -20,7 +20,7 @@ import {
   TbZoom,
   TbStack2,
   TbBuildingWarehouse,
-  TbCar,
+  TbSteeringWheel,
   TbSettings,
   TbMenu2,
   TbPalette,
@@ -87,7 +87,7 @@ const NavigationBar = ({ }) => {
   return (
     <header className="flex items-center w-full py-1 px-3 border-2">
       <Link to="/" className="shrink-0">
-        <img src={logoUrl} alt="Logo" className="h-7" />
+        <img src={logoUrl} alt="Logo" className="h-15" />
       </Link>
 
       {config && config.enableBranding && (
@@ -237,7 +237,7 @@ const NavigationBar = ({ }) => {
             <Link to={`/model/${model.id}`}>
               <DaButton variant="plain">
                 <div className="flex items-center">
-                  <FaCar style={{ transform: 'scale(1.4)' }} className="mr-3" />
+                  <TbSteeringWheel style={{ transform: 'scale(1.4)' }} className="mr-3" />
                   <div className="truncate max-w-[180px]">
                     {model.name || 'Select Model'}
                   </div>
@@ -248,7 +248,7 @@ const NavigationBar = ({ }) => {
             <Link to="/model">
               <DaButton variant="plain">
                 <div className="flex items-center">
-                  <FaCar style={{ transform: 'scale(1.5)' }} className="mr-3" />
+                  <TbSteeringWheel style={{ transform: 'scale(1.5)' }} className="mr-3" />
                   Select Model
                 </div>
               </DaButton>

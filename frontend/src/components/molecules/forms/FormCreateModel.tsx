@@ -28,6 +28,7 @@ import useListModelLite from '@/hooks/useListModelLite'
 import { addLog } from '@/services/log.service'
 import useSelfProfileQuery from '@/hooks/useSelfProfile'
 import useListVSSVersions from '@/hooks/useListVSSVersions'
+import useListBrands from '@/hooks/useListBrands'
 import DaFileUpload from '@/components/atoms/DaFileUpload'
 import { useQuery } from '@tanstack/react-query'
 import { listModelTemplates } from '@/services/modelTemplate.service'
@@ -47,13 +48,20 @@ const initialState: ModelData = {
   api_version: 'v4.1',
 }
 
-const FormCreateModel = () => {
+interface FormCreateModelProps {
+  defaultBrandId?: string
+}
+
+const FormCreateModel = ({ defaultBrandId }: FormCreateModelProps) => {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
 
   const [error, setError] = useState<string>('')
   const [data, setData] = useState(initialState)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(defaultBrandId || null)
+  const [isBaseModel, setIsBaseModel] = useState(false)
+  const { data: brands = [] } = useListBrands()
   const { refetch: refetchModelLite } = useListModelLite()
   const { data: versions } = useListVSSVersions()
   const { toast } = useToast()
@@ -89,6 +97,8 @@ const FormCreateModel = () => {
         name: data.name,
         api_version: data.api_version,
         model_template_id: selectedTemplateId || null,
+        brand_id: selectedBrandId || null,
+        is_base_model: defaultBrandId ? isBaseModel : undefined,
       }
       if (data.api_data_url) {
         body.api_data_url = data.api_data_url
@@ -117,6 +127,7 @@ const FormCreateModel = () => {
       navigate(`/model/${modelId}`)
       setData(initialState)
       setSelectedTemplateId(null)
+      setIsBaseModel(false)
     } catch (error) {
       if (isAxiosError(error)) {
         setError(error.response?.data?.message || 'Something went wrong')
@@ -160,9 +171,48 @@ const FormCreateModel = () => {
       className="flex min-h-[300px] w-full min-w-[400px] overflow-y-auto flex-col bg-background p-0"
     >
       {/* Title */}
-      <h2 className="text-lg font-semibold text-primary">Create New Model</h2>
+      <h2 className="text-lg font-semibold text-primary">
+        {defaultBrandId
+          ? `Add Vehicle Model`
+          : 'Create New Model'}
+      </h2>
 
-      {/* Content */}
+      {/* Brand Selection - only show if not preset */}
+      {!defaultBrandId && (
+        <div className="mt-4 flex flex-col gap-1.5">
+          <Label>Brand (Optional)</Label>
+          <Select
+            value={selectedBrandId ?? 'none'}
+            onValueChange={(v) => setSelectedBrandId(v === 'none' ? null : v)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select brand" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No brand</SelectItem>
+              {brands.map((brand) => (
+                <SelectItem key={brand.id} value={brand.id}>
+                  {brand.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      {defaultBrandId && (
+        <div className="mt-4 flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="is-base-model"
+            checked={isBaseModel}
+            onChange={(e) => setIsBaseModel(e.target.checked)}
+            className="rounded border-input"
+          />
+          <Label htmlFor="is-base-model" className="cursor-pointer font-normal">
+            Create as Base Model (platform with base hardware/software features)
+          </Label>
+        </div>
+      )}
       <div className="mt-4 flex flex-col gap-1.5">
         <Label>Model Name *</Label>
         <Input

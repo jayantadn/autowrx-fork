@@ -9,6 +9,7 @@
 const express = require('express');
 const prototypeRoute = require('./prototype.route');
 const modelRoute = require('./model.route');
+const brandRoute = require('./brand.route');
 const apiRoute = require('./api.route');
 const extendedApiRoute = require('./extendedApi.route');
 const customApiSetRoute = require('./custom-api-set.route');
@@ -16,6 +17,7 @@ const customApiSetRoute = require('./custom-api-set.route');
 const router = express.Router();
 
 // Vehicle Data Routes
+router.use('/brands', brandRoute);
 router.use('/prototypes', prototypeRoute);
 router.use('/models', modelRoute);
 router.use('/apis', apiRoute);

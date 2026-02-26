@@ -7,7 +7,7 @@
 // SPDX-License-Identifier: MIT
 
 import { BsStars } from 'react-icons/bs'
-import { FaCar } from 'react-icons/fa'
+import { TbSteeringWheel } from 'react-icons/tb'
 import { TbArrowRight, TbCode } from 'react-icons/tb'
 
 export const home = [
@@ -49,7 +49,7 @@ export const home = [
         type: 'new-model',
         title: 'New model',
         description: 'Create a vehicle model',
-        icon: <FaCar className="h-7 w-7 text-primary" />,
+        icon: <TbSteeringWheel className="h-7 w-7 text-primary" />,
       },
       {
         type: 'new-prototype',

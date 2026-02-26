@@ -19,11 +19,14 @@ export type ModelLite = {
   visibility: string
   model_home_image_file: string
   id: string
+  is_base_model?: boolean
   created_at?: Date
   created_by: string
   tags?: Tag[]
   state?: 'draft' | 'released' | 'blocked'
   api_version?: string
+  brand_id?: string
+  brand?: { id: string; name: string }
   stats?: {
     apis: {
       total: { count: number }
@@ -44,6 +47,7 @@ export type ModelLite = {
 
 export type Model = {
   id: string
+  is_base_model?: boolean
   custom_apis?: any[]
   api_version?: string
   main_api: string
@@ -167,6 +171,8 @@ export type ModelCreate = {
   extended_apis?: any[]
   api_data_url?: string
   model_template_id?: string | null
+  brand_id?: string | null
+  is_base_model?: boolean
 }
 
 export type VehicleApi = {

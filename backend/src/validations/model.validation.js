@@ -41,12 +41,15 @@ const createModel = {
     model_template_id: Joi.string().custom(objectId).allow(null),
     custom_template: Joi.any(),
     custom_api_sets: Joi.array().items(Joi.string().custom(objectId)),
+    brand_id: Joi.string().custom(objectId).allow(null),
+    is_base_model: Joi.boolean(),
   }),
 };
 
 const listAllModels = {
   query: Joi.object().keys({
     fields: Joi.string().allow(''),
+    brand_id: Joi.string().custom(objectId).allow(''),
   }),
 };
 
@@ -57,6 +60,7 @@ const listModels = {
     tenant_id: Joi.string(),
     vehicle_category: Joi.string(),
     main_api: Joi.string(),
+    brand_id: Joi.string().custom(objectId),
     fields: Joi.string(),
     id: Joi.string().custom(objectId),
     created_by: Joi.string().custom(objectId),
@@ -93,6 +97,8 @@ const updateModel = {
       model_template_id: Joi.string().custom(objectId).allow(null),
       custom_template: Joi.any(),
       custom_api_sets: Joi.array().items(Joi.string().custom(objectId)),
+      brand_id: Joi.string().custom(objectId).allow(null),
+      is_base_model: Joi.boolean(),
     })
     .min(1),
   params: Joi.object().keys({

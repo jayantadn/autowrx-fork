@@ -33,6 +33,7 @@ export const listModelsLite = async (
           'tags',
           'state',
           'stats',
+          'is_base_model',
         ].join(','),
         page,
         limit,
@@ -59,14 +60,17 @@ interface AllModelsResponse {
   publicReleasedModels: List<ModelLite>
 }
 
-export const listAllModels = async (): Promise<{
+export const listAllModels = async (params?: {
+  brand_id?: string | null
+}): Promise<{
   ownedModels: ModelLite[]
   contributedModels: ModelLite[]
   publicReleasedModels: ModelLite[]
 }> => {
   try {
-    const { data } = await serverAxios.get<AllModelsResponse>('/models/all')
-    // console.log('Raw data from /models/all:', data)
+    const { data } = await serverAxios.get<AllModelsResponse>('/models/all', {
+      params: params?.brand_id ? { brand_id: params.brand_id } : {},
+    })
 
     const ownedModels = data.ownedModels?.results || []
     const contributedModels = data.contributedModels?.results || []

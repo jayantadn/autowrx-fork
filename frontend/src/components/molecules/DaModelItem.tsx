@@ -63,9 +63,16 @@ const DaModelItem = ({ model, className }: DaModelItemProps) => {
           </div>
         </div>
         <div className="flex items-center w-full px-1 pt-0.5">
-          <h3 className="text-base font-semibold line-clamp-1 text-foreground">
-            {model?.name ?? ''}
-          </h3>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <h3 className="text-base font-semibold line-clamp-1 text-foreground">
+              {model?.name ?? ''}
+            </h3>
+            {model?.is_base_model && (
+              <Badge variant="secondary" className="shrink-0 text-xs">
+                Base
+              </Badge>
+            )}
+          </div>
           <div className="grow"></div>
           <div className="flex text-sm items-center gap-3">
             <TooltipProvider>

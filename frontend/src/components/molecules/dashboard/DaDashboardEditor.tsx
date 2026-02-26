@@ -641,6 +641,11 @@ const DaWidgetLibrary: FC<DaWidgetLibraryProp> = ({
         )}
 
         <div className="flex w-full justify-end items-center mt-4">
+          {(!pickedCells || pickedCells.length === 0) && (
+            <span className="mr-auto text-sm text-amber-600">
+              Select cells on the grid first, close this dialog, then add a widget again.
+            </span>
+          )}
           <Button
             variant="ghost"
             className="px-4 py-2 text-base mr-2 h-8"
@@ -708,6 +713,7 @@ const DaDashboardEditor = ({
   const [isSelectedCellValid, setIsSelectedCellValid] = useState<boolean>(false)
   const [isWidgetLibraryOpen, setIsWidgetLibraryOpen] = useState<boolean>(false)
   const [targetSelectionCells, setTargetSelectionCells] = useState<number[]>([])
+  const [addWidgetHint, setAddWidgetHint] = useState<boolean>(false)
 
   const codeEditorPopup = useState<boolean>(false)
   const [isAddingFromURL, setIsAddingFromURL] = useState<boolean>(false)
@@ -785,6 +791,23 @@ const DaDashboardEditor = ({
   const handleAddWidget = () => {
     setTargetSelectionCells(selectedCells)
     setIsWidgetLibraryOpen(true)
+    if (selectedCells.length === 0 || !isSelectedCellValid) {
+      setAddWidgetHint(true)
+      setTimeout(() => setAddWidgetHint(false), 4000)
+    }
+  }
+
+  const handleResetInvalidConfig = () => {
+    const emptyConfig = JSON.stringify(
+      { autorun: false, widgets: [] },
+      null,
+      2,
+    )
+    setWidgetConfigs([])
+    setIsConfigValid(true)
+    onConfigValidChanged?.(true)
+    setWarningMessage2(null)
+    onDashboardConfigChanged(emptyConfig)
   }
 
   const handleOpenWidget = (index: number) => {
@@ -984,13 +1007,21 @@ const DaDashboardEditor = ({
   const widgetGrid = () => {
     if (!isConfigValid) {
       return (
-        <div className="col-span-5 row-span-2 flex h-full w-full items-center justify-center">
-          <div className="flex h-full items-center text-gray-400">
+        <div className="col-span-5 row-span-2 flex h-full w-full flex-col items-center justify-center gap-4">
+          <div className="flex items-center text-gray-400">
             <TbExclamationMark className="mr-0.5 h-5 w-5 text-red-500" />
             {warningMessage2
               ? warningMessage2
               : 'The configuration is not valid. Please check the configuration.'}
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetInvalidConfig}
+            className="text-primary"
+          >
+            Reset dashboard and start fresh
+          </Button>
         </div>
       )
     }
@@ -1108,6 +1139,11 @@ const DaDashboardEditor = ({
           Click on empty cell to place new widget
         </span>
       )}
+      {addWidgetHint && (
+        <div className="py-1 text-xs text-amber-600">
+          Select cells on the grid first, close the dialog, then add a widget again.
+        </div>
+      )}
       {warningMessage && (
         <div className="mt-3 flex w-fit select-none items-center justify-center rounded border border-gray-200 px-2 py-1 shadow-sm">
           <TbExclamationMark className="mr-1 flex h-5 w-5 text-orange-500" />
@@ -1126,7 +1162,7 @@ const DaDashboardEditor = ({
 
           <DaWidgetLibrary
             targetSelectionCells={targetSelectionCells}
-            entireWidgetConfig={entireWidgetConfig || ''}
+            entireWidgetConfig={(entireWidgetConfig?.trim()) ? entireWidgetConfig : JSON.stringify({ autorun: false, widgets: [] })}
             updateDashboardCfg={handleOnDashboardConfigChanged}
             popupState={[isWidgetLibraryOpen, setIsWidgetLibraryOpen]}
           />

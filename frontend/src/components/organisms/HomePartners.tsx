@@ -32,18 +32,18 @@ const HomePartners: FC<HomePartnersProps> = ({ items, children }) => {
         (config.instance === 'digitalauto' || config.instance === 'autowrx') &&
         !children ? (
           <>
-            <div className="flex flex-col w-fit xl:w-[30%] ml-12 my-6 lg:my-12">
+            <div className="flex flex-col items-center text-center my-6 lg:my-12">
               <div className="text-xl font-semibold mb-2 text-foreground">
                 Partnership
               </div>
 
-              <div className="w-fit text-sm xl:max-w-lg text-muted-foreground">
+              <div className="text-sm max-w-lg text-muted-foreground">
                 Interoperability is key. Therefore, we have teamed up with many
                 partners to start an SDV interoperability initiative.
               </div>
             </div>
 
-            <div className="flex gap-1.56 2xl:gap-24 mx-12 pb-6 xl:pb-0">
+            <div className="flex gap-8 2xl:gap-24 pb-6 xl:pb-0">
               {items?.map((group: any, gIndex: number) => (
                 <div key={gIndex} className="flex flex-col w-fit">
                   <p className="text-sm font-medium xl:flex hidden mt-2 justify-center text-muted-foreground">

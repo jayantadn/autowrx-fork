@@ -33,3 +33,4 @@ module.exports.dashboardTemplateService = require('./dashboardTemplate.service')
 module.exports.customApiSchemaService = require('./customApiSchema.service');
 module.exports.customApiSetService = require('./customApiSet.service');
 // Inventory services removed
+module.exports.teamsService = require('./teams.service');

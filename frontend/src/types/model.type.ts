@@ -75,6 +75,7 @@ export type Model = {
   model_template_id?: string | null
   custom_template?: any
   custom_api_sets?: string[]
+  brand_id?: string | null
 }
 
 export type Prototype = {

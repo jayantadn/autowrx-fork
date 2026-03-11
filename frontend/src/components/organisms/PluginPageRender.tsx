@@ -9,7 +9,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
 import { Spinner } from '@/components/atoms/spinner'
-import { getPluginById, getPluginBySlug } from '@/services/plugin.service'
+import { getPluginById, getPluginBySlug, TEAMS_PLUGIN_SLUG } from '@/services/plugin.service'
+import TeamsPluginContent from '@/components/plugins/TeamsPluginContent'
 import { updateModelService, getComputedAPIs, getApiDetailService, replaceAPIsService } from '@/services/model.service'
 import { updatePrototypeService } from '@/services/prototype.service'
 import { listVSSVersionsService } from '@/services/api.service'
@@ -309,11 +310,18 @@ const PluginPageRender: React.FC<PluginPageRenderProps> = ({ plugin_id, data, on
           throw new Error(`Plugin with slug "${plugin_id}" not found`)
         }
 
+        // Built-in Microsoft Teams plugin: render in-app component, no script load
+        if (pluginMeta.built_in && plugin_id === TEAMS_PLUGIN_SLUG) {
+          if (cancelled || myLoadId !== loadIdRef.current) return
+          setLoadedPluginName(plugin_id)
+          setPluginComponent(() => TeamsPluginContent)
+          setLoading(false)
+          return
+        }
+
         if (!pluginMeta.url) {
           throw new Error(`Plugin "${plugin_id}" has no URL configured`)
         }
-
-        
 
         const PLUGIN_URL = pluginMeta.url
         log('Plugin URL:', PLUGIN_URL)

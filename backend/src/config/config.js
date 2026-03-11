@@ -38,6 +38,10 @@ const envVarsSchema = Joi.object()
     CLIENT_BASE_URL: Joi.string().description('Client base url').default('http://localhost:3000'),
     GITHUB_CLIENT_ID: Joi.string().description('Github client id'),
     GITHUB_CLIENT_SECRET: Joi.string().description('Github client secret'),
+    // Microsoft Graph / Teams integration
+    MS_GRAPH_TENANT_ID: Joi.string().description('Microsoft Graph tenant ID'),
+    MS_GRAPH_CLIENT_ID: Joi.string().description('Microsoft Graph client ID'),
+    MS_GRAPH_CLIENT_SECRET: Joi.string().description('Microsoft Graph client secret'),
     // Log service URL
     LOG_URL: Joi.string().description('Log base url'),
     // Cache service URL
@@ -181,6 +185,16 @@ const config = {
   },
   sso: {
     msGraphMeEndpoint: 'https://graph.microsoft.com/v1.0/me',
+  },
+  graph: {
+    tenantId: envVars.MS_GRAPH_TENANT_ID,
+    clientId: envVars.MS_GRAPH_CLIENT_ID,
+    clientSecret: envVars.MS_GRAPH_CLIENT_SECRET,
+    authority: envVars.MS_GRAPH_TENANT_ID
+      ? `https://login.microsoftonline.com/${envVars.MS_GRAPH_TENANT_ID}`
+      : null,
+    scope: 'https://graph.microsoft.com/.default',
+    baseUrl: 'https://graph.microsoft.com/v1.0',
   },
   adminEmails: envVars.ADMIN_EMAILS?.split(',') || [],
   adminPassword: envVars.ADMIN_PASSWORD,

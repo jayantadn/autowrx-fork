@@ -1,0 +1,269 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../tailwind.min.css">
+    <script defer src="../syncer.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            justify-content: center;
+            position: relative;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .hood-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease-in-out;
+            border-radius: 12px;
+        }
+
+        .hood-closed {
+            opacity: 1;
+        }
+
+        .hood-open {
+            opacity: 0;
+        }
+
+        .hood-closed.hidden {
+            opacity: 0;
+        }
+
+        .hood-open.visible {
+            opacity: 1;
+        }
+
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 30px 20px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator.warning {
+            background: #ef4444;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.7);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .status-text {
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(34, 197, 94, 0.2);
+            border-top-color: #22c55e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #9ca3af;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="image-container">
+            <div id="loading" class="loading-overlay">
+                <div class="spinner"></div>
+                <div class="loading-text">Waiting for signal...</div>
+            </div>
+            
+
+            <img id="img-closed" class="hood-image hood-closed" 
+                 src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=400&fit=crop" 
+                 alt="Hood Closed"
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231f2937%22 width=%22400%22 height=%22300%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 fill=%22%236b7280%22 font-size=%2220%22>Hood Closed</text></svg>'">
+            <img id="img-open" class="hood-image hood-open" 
+                 src="https://images.unsplash.com/photo-1597007066704-67bf2068d665?w=600&h=400&fit=crop" 
+                 alt="Hood Open"
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231f2937%22 width=%22400%22 height=%22300%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 fill=%22%22ef4444%22%22 font-size=%2220%22>Hood Open</text></svg>'">
+            
+            <div class="status-bar">
+                <div id="status-indicator" class="status-indicator"></div>
+                <span id="status-text" class="status-text">Hood Closed</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let interval = null;
+        const imgClosed = document.getElementById('img-closed');
+        const imgOpen = document.getElementById('img-open');
+        const statusText = document.getElementById('status-text');
+        const statusIndicator = document.getElementById('status-indicator');
+        const loadingOverlay = document.getElementById('loading');
+
+        let API_NAME = "Vehicle.Body.Hood.IsOpen";
+        let lastValue = null;
+        let firstDataReceived = false;
+
+        function parseBoolean(value) {
+            if (value === true || value === 'true' || value === 1 || value === '1') {
+                return true;
+            }
+            return false;
+        }
+
+        function setHoodState(isOpen) {
+            const open = parseBoolean(isOpen);
+            
+            console.log('[Hood Widget] Setting state:', open);
+            
+            if (open) {
+                imgClosed.classList.add('hidden');
+                imgOpen.classList.add('visible');
+                statusText.textContent = 'HOOD OPEN';
+                statusIndicator.classList.add('warning');
+            } else {
+                imgClosed.classList.remove('hidden');
+                imgOpen.classList.remove('visible');
+                statusText.textContent = 'HOOD CLOSED';
+                statusIndicator.classList.remove('warning');
+            }
+        }
+
+        function updateDebug(rawValue, apiName) {
+            if (rawValue !== undefined && rawValue !== null) {
+                if (!firstDataReceived) {
+                    firstDataReceived = true;
+                    loadingOverlay.classList.add('hidden');
+                }
+            }
+        }
+
+        function processValue(rawValue) {
+            updateDebug(rawValue, API_NAME);
+            
+            if (rawValue !== undefined && rawValue !== null && rawValue !== lastValue) {
+                console.log('[Hood Widget] Value changed from', lastValue, 'to', rawValue);
+                lastValue = rawValue;
+                setHoodState(rawValue);
+            }
+        }
+
+        function onWidgetLoaded(options) {
+            API_NAME = options.api || "Vehicle.Body.Hood.IsOpen";
+            console.log('[Hood Widget] Initialized with API:', API_NAME);
+            
+            if (options.closedImage) {
+                imgClosed.src = options.closedImage;
+            }
+            if (options.openImage) {
+                imgOpen.src = options.openImage;
+            }
+
+            setHoodState(false);
+
+            interval = setInterval(() => {
+                const rawValue = getApiValue(API_NAME);
+                processValue(rawValue);
+            }, options.dataUpdateInterval || 200);
+        }
+
+        function onVssSync(data) {
+            console.log('[Hood Widget] onVssSync received:', JSON.stringify(data));
+            
+            if (data && data[API_NAME] !== undefined) {
+                const rawValue = data[API_NAME];
+                processValue(rawValue);
+            }
+        }
+
+        function onWidgetUnloaded(options) {
+            if (interval) clearInterval(interval);
+        }
+    </script>
+</body>
+
+</html>

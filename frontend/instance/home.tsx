@@ -7,9 +7,84 @@
 // SPDX-License-Identifier: MIT
 
 import { TbExternalLink } from 'react-icons/tb'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/atoms/button'
 import DaRequireSignedIn from '@/components/molecules/DaRequireSignedIn'
 import DisabledLink from '@/components/molecules/DaDisableLink'
+import { getNextTeamsMeeting, NextMeetingResponse } from '@/services/teams.service'
+
+const TeamsMeetingWidget = () => {
+  const [meeting, setMeeting] = useState<NextMeetingResponse['meeting'] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const data = await getNextTeamsMeeting()
+        if (!cancelled) {
+          setMeeting(data.meeting || null)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError('Unable to load Teams meetings')
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (loading) {
+    return <p className="text-sm text-muted-foreground">Loading your next Teams meeting…</p>
+  }
+
+  if (error) {
+    return <p className="text-sm text-destructive">{error}</p>
+  }
+
+  if (!meeting) {
+    return <p className="text-sm text-muted-foreground">No upcoming Teams meetings found.</p>
+  }
+
+  const startTime = meeting.start ? new Date(meeting.start).toLocaleString() : 'Unknown start time'
+
+  return (
+    <div className="flex flex-col space-y-2">
+      <div>
+        <p className="font-medium text-sm">{meeting.subject || 'Upcoming meeting'}</p>
+        <p className="text-xs text-muted-foreground">{startTime}</p>
+        {meeting.organizer?.name && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Organizer: {meeting.organizer.name}
+          </p>
+        )}
+      </div>
+      {meeting.onlineMeeting?.joinUrl && (
+        <Button size="sm" asChild data-id="btn-join-teams-meeting" className="w-32">
+          <a
+            href={meeting.onlineMeeting.joinUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center"
+          >
+            Join in Teams
+          </a>
+        </Button>
+      )}
+    </div>
+  )
+}
 
 const home = [
   {
@@ -87,6 +162,18 @@ const home = [
                 Vehicle Models
               </DisabledLink>
             </Button>
+          </DaRequireSignedIn>
+        ),
+      },
+      {
+        title: 'Microsoft Teams',
+        description:
+          'See your next Microsoft Teams meeting and quickly join from the playground.',
+        children: (
+          <DaRequireSignedIn message="You must first sign in to view your Teams meetings">
+            <div className="mt-4">
+              <TeamsMeetingWidget />
+            </div>
           </DaRequireSignedIn>
         ),
       },

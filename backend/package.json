@@ -24,7 +24,8 @@
     "docker:prod": "cd ../instance-setup && docker compose -f docker-compose.prod.yml --env-file .env.prod up -d",
     "prepare": "husky install",
     "seed:brands": "node src/scripts/seedBrands.js",
-    "seed:features": "node src/scripts/seedModelFeatures.js"
+    "seed:features": "node src/scripts/seedModelFeatures.js",
+    "seed:teams-plugin": "node src/scripts/seedTeamsPlugin.js"
   },
   "keywords": [
     "node",

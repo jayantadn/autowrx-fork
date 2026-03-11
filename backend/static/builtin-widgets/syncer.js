@@ -1,217 +1,127 @@
-let apiMap = new Map();
+/**
+ * Widget Syncer - Communication helper for dashboard widgets.
+ * Handles postMessage communication with the parent dashboard.
+ */
 
-const getApiValue = (apiName) => {
-  if (!apiName) return null;
-  // console.log(`on get apiName ${apiName}`)
-  return apiMap.get(apiName);
-};
+(function () {
+  const apiMap = new Map();
+  let vssTree = null;
+  let widgetOptions = {};
+  let appLog = '';
 
-const setApiValue = (apiName, value) => {
-  notifyParentApiChange(apiName, value);
-};
+  /**
+   * Get the current value of a vehicle API signal.
+   * @param {string} apiName - The API signal name (e.g., 'Vehicle.Speed')
+   * @returns {*} The current value or undefined
+   */
+  window.getApiValue = function (apiName) {
+    return apiMap.get(apiName);
+  };
 
-const notifyParentApiChange = (apiName, value) => {
-  if (!parent) return;
-  parent.postMessage(
-    JSON.stringify({
-      cmd: "set-api-value",
-      api: apiName,
-      value: value,
-    }),
-    "*"
-  );
-};
+  /**
+   * Get all current API values.
+   * @returns {Object} Map of all API values
+   */
+  window.getAllApiValues = function () {
+    return Object.fromEntries(apiMap);
+  };
 
-const initHandle = () => {
-  let listenForApis = [];
-  let VSSs = document.querySelectorAll('[vss="true"]');
-  VSSs.forEach((vss) => {
-    let apiName = vss.getAttribute("vss-name");
-    let actionFullStr = vss.getAttribute("action");
+  /**
+   * Set a vehicle API value (notify parent to update simulation).
+   * @param {string} apiName - The API signal name
+   * @param {*} value - The value to set
+   */
+  window.setApiValue = function (apiName, value) {
+    parent.postMessage(
+      JSON.stringify({
+        cmd: 'set-api-value',
+        api: apiName,
+        value: value,
+      }),
+      '*'
+    );
+  };
 
-    if (apiName) {
-      let matchApi = apiMap.get(apiName);
-      if (!matchApi) {
-        matchApi = {
-          value: 0,
-          lastSetValue: 0,
-          listeners: [],
-        };
-        apiMap.set(apiName, matchApi);
-      }
+  /**
+   * Get the VSS tree structure.
+   * @returns {Object|null} The VSS tree
+   */
+  window.getVssTree = function () {
+    return vssTree;
+  };
 
-      if (!actionFullStr) {
-        listenForApis.push(apiName);
-        matchApi.listeners.push(vss);
-      } else {
-        vss.addEventListener("click", () => {
-          console.log(`[${apiName}] action ${actionFullStr} on clicked `)
-          let arrActions = actionFullStr.split("::");
-          let matchApi = apiMap.get(apiName);
-          if (arrActions.length > 0 && matchApi) {
-            let strValue = arrActions[1] || "0";
-            let value = 0;
-            if (strValue.toLowerCase() == "false") {
-              value = false;
-            } else if (strValue.toLowerCase() == "true") {
-              value = true;
-            } else {
-              value = Number(strValue);
-            }
-            switch (arrActions[0]) {
-              case "set":
-                // console.log(`[${apiName}] set ${value}`)
-                // matchApi.value = value
-                // matchApi.lastSetValue = new Date().getTime()
-                notifyParentApiChange(apiName, value);
-                break;
-              case "inc":
-                break;
-              case "dec":
-                break;
-              case "invert":
-                break;
-            }
-          }
-        });
-      }
+  /**
+   * Get widget options passed from configuration.
+   * @returns {Object} Widget options
+   */
+  window.getWidgetOptions = function () {
+    return widgetOptions;
+  };
+
+  /**
+   * Get the current app log output.
+   * @returns {string} The app log
+   */
+  window.getAppLog = function () {
+    return appLog;
+  };
+
+  /**
+   * Open a modal in the parent dashboard.
+   * @param {Object} payload - Modal payload (type: 'video'|'image'|'iframe', url/html, options)
+   */
+  window.openModal = function (payload) {
+    parent.postMessage(
+      JSON.stringify({
+        action: 'open-modal',
+        payload: payload,
+      }),
+      '*'
+    );
+  };
+
+  window.addEventListener('message', function (e) {
+    let payload;
+    try {
+      payload = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    } catch (err) {
+      return;
     }
-    listenForApis = [...new Set(listenForApis)];
-    console.log('listenForApis')
-    console.log(listenForApis)
 
-    if (parent && listenForApis && listenForApis.length > 0) {
-      parent.postMessage(
-        JSON.stringify({
-          cmd: "listen-for-apis",
-          apis: listenForApis,
-        }),
-        "*"
-      );
-    }
-  });
-
-  let interval = null;
-  interval = setInterval(() => {
-    apiMap.forEach((api, key) => {
-      if (api.listeners) {
-        api.listeners.forEach(listeners => listeners.innerText = api.value)
-        api.listeners.forEach((listener) => {
-          let displayValueStr = listener.getAttribute(
-            "display_when_value_equal"
-          );
-          if (displayValueStr != null && displayValueStr != undefined) {
-            if (
-              String(api.value).toLowerCase() === displayValueStr.toLowerCase()
-            ) {
-              listener.style.display = "block";
-            } else {
-              listener.style.display = "none";
-            }
-            return;
-          }
-          if (isNaN(api.value)) {
-            listener.innerText = api.value;
-          } else {
-            listener.innerText = Math.round(api.value * 1000) / 1000;
-          }
-        });
-      }
-    });
-  }, 200);
-  window.addEventListener("unload", () => {
-    if (onWidgetUnloaded != undefined) {
-      onWidgetUnloaded();
-    }
-    clearInterval(interval);
-  });
-};
-
-let widgetOptions = null;
-let widgetLoaded = false;
-
-window.addEventListener("load", () => {
-  console.log("syncer: on window loaded");
-  widgetLoaded = true;
-  
-  // Try to get options from URL parameters first (for non-builtin widgets)
-  try {
-    let urlParams = new URLSearchParams(window.location.search);
-    let urlOptions = JSON.parse(decodeURIComponent(urlParams.get("options")));
-    if (urlOptions) {
-      widgetOptions = urlOptions;
-      // If we got options from URL, call onWidgetLoaded immediately
-      if (onWidgetLoaded != undefined) {
-        onWidgetLoaded(widgetOptions);
-      }
-    }
-  } catch (e) {
-    // No URL options, wait for postMessage
-    console.log("No URL options, waiting for postMessage...");
-  }
-
-  setTimeout(() => {
-    initHandle();
-  }, 100);
-});
-
-const applyNewVssDataFromSyncer = (vssDataIncome) => {
-  if (!vssDataIncome) return;
-  // console.log("vssDataIncome", typeof(vssDataIncome) ,vssDataIncome)
-  let vssMap = new Map(Object.entries(vssDataIncome));
-  // console.log(vssMap)
-
-  apiMap.forEach((api, key) => {
-    let inComeValue = vssMap.get(key);
-    if (inComeValue != undefined && inComeValue != null) {
-      api.value = inComeValue;
-    }
-  });
-
-  vssMap.forEach((incomeValue, key) => {
-    if (!apiMap.get(key)) {
-      apiMap.set(key, {
-        value: incomeValue,
-        lastSetValue: new Date(),
-      });
-    }
-  });
-
-  // console.log(apiMap)
-};
-
-window.addEventListener("message", function (e) {
-  if (!e.data) return;
-  // console.log(`onMessage`, e.data)
-  let payload = JSON.parse(e.data);
-  if (payload.cmd) {
     switch (payload.cmd) {
-      case "widget-options":
-        // Receive widget options from parent for built-in widgets
-        if (payload.options && widgetLoaded && !widgetOptions) {
-          widgetOptions = payload.options;
-          console.log("Received widget options via postMessage:", widgetOptions);
-          if (onWidgetLoaded != undefined) {
-            onWidgetLoaded(widgetOptions);
-          }
+      case 'widget-options':
+        widgetOptions = payload.options || {};
+        if (typeof window.onWidgetLoaded === 'function') {
+          window.onWidgetLoaded(widgetOptions);
         }
         break;
-      case "vss-tree":
-        if (!payload.vssTree) return;
-        window.VSS_TREE = payload.vssTree
-        break;
-      case "vss-sync":
-        if (!payload.vssData) return;
-        applyNewVssDataFromSyncer(payload.vssData);
-        break;
-      case "app-log":
-        if (!payload.log) return;
-        if (appendLog) {
-          appendLog(payload.log)
+
+      case 'vss-sync':
+        const data = payload.vssData || {};
+        for (const key in data) {
+          apiMap.set(key, data[key]);
+        }
+        if (typeof window.onVssSync === 'function') {
+          window.onVssSync(data);
         }
         break;
-      default:
+
+      case 'vss-tree':
+        vssTree = payload.vssTree || null;
+        if (typeof window.onVssTree === 'function') {
+          window.onVssTree(vssTree);
+        }
+        break;
+
+      case 'app-log':
+        appLog = payload.log || '';
+        if (typeof window.onAppLog === 'function') {
+          window.onAppLog(appLog);
+        }
         break;
     }
-  }
-});
+  });
+
+  // Notify parent that widget is ready
+  parent.postMessage(JSON.stringify({ cmd: 'widget-ready' }), '*');
+})();

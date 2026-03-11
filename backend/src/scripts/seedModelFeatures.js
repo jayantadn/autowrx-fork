@@ -26,6 +26,14 @@ const BRAND_BASE_FEATURES = {
     { apiName: 'Vehicle.Chassis.Axle.DriveMode', type: 'actuator', datatype: 'string', description: 'Mahindra platform drive mode (2H/4H/4L for 4WD models)', allowed: ['2H', '4H', '4L'] },
     { apiName: 'Vehicle.Powertrain.Transmission.DriveMode', type: 'actuator', datatype: 'string', description: 'Mahindra platform drive mode', allowed: ['Normal', 'Eco', 'Sport'] },
   ],
+  TVS: [
+    { apiName: 'Vehicle.Speed', type: 'sensor', datatype: 'float', description: 'TVS SmartXonnect vehicle speed', min: 0, max: 180 },
+    { apiName: 'Vehicle.Body.Lights.Beam.Low.IsOn', type: 'actuator', datatype: 'boolean', description: 'TVS headlight control' },
+    { apiName: 'Vehicle.Connectivity.Bluetooth.IsConnected', type: 'sensor', datatype: 'boolean', description: 'Helmet Bluetooth connection status' },
+    { apiName: 'Vehicle.Connectivity.Bluetooth.AudioStream.IsActive', type: 'sensor', datatype: 'boolean', description: 'Audio streaming to helmet active' },
+    { apiName: 'Vehicle.Communication.Teams.CallState', type: 'sensor', datatype: 'string', description: 'Teams call state', allowed: ['idle', 'incoming', 'active', 'on_hold'] },
+    { apiName: 'Vehicle.Communication.Teams.IsMuted', type: 'actuator', datatype: 'boolean', description: 'Teams audio mute state' },
+  ],
 };
 
 const MODEL_EXTENDED_APIS = {
@@ -66,6 +74,48 @@ const MODEL_EXTENDED_APIS = {
     { apiName: 'Vehicle.Chassis.GroundClearance.Millimeters', type: 'sensor', datatype: 'uint16', description: 'Ground clearance in mm', min: 0, max: 500 },
     { apiName: 'Vehicle.Powertrain.Transmission.DriveMode', type: 'actuator', datatype: 'string', description: 'Off-road drive mode', allowed: ['Normal', 'Mud', 'Sand', 'Rock'] },
     { apiName: 'Vehicle.Body.DifferentialLock.IsEngaged', type: 'actuator', datatype: 'boolean', description: 'Differential lock engaged' },
+  ],
+  // TVS Two-Wheeler Models
+  Apache: [
+    { apiName: 'Vehicle.Speed', type: 'sensor', datatype: 'float', description: 'Current speed in km/h', min: 0, max: 180 },
+    { apiName: 'Vehicle.Powertrain.FuelSystem.Level', type: 'sensor', datatype: 'uint8', description: 'Fuel level percentage', min: 0, max: 100 },
+    { apiName: 'Vehicle.Powertrain.CombustionEngine.RPM', type: 'sensor', datatype: 'uint16', description: 'Engine RPM', min: 0, max: 12000 },
+    { apiName: 'Vehicle.Body.Lights.Beam.Low.IsOn', type: 'actuator', datatype: 'boolean', description: 'Headlight on/off' },
+    { apiName: 'Vehicle.Connectivity.Bluetooth.IsConnected', type: 'sensor', datatype: 'boolean', description: 'Helmet Bluetooth connected' },
+    { apiName: 'Vehicle.Communication.Teams.RideMode', type: 'sensor', datatype: 'string', description: 'Teams safety mode', allowed: ['stopped', 'city', 'urban', 'highway'] },
+    { apiName: 'Vehicle.Communication.Teams.CallState', type: 'sensor', datatype: 'string', description: 'Current call state', allowed: ['idle', 'incoming', 'active'] },
+    { apiName: 'Vehicle.OBD.TripDuration', type: 'sensor', datatype: 'uint32', description: 'Trip duration in seconds' },
+  ],
+  Jupiter: [
+    { apiName: 'Vehicle.Speed', type: 'sensor', datatype: 'float', description: 'Current speed in km/h', min: 0, max: 100 },
+    { apiName: 'Vehicle.Powertrain.FuelSystem.Level', type: 'sensor', datatype: 'uint8', description: 'Fuel level percentage', min: 0, max: 100 },
+    { apiName: 'Vehicle.Body.Lights.Beam.Low.IsOn', type: 'actuator', datatype: 'boolean', description: 'Headlight on/off' },
+    { apiName: 'Vehicle.Connectivity.Bluetooth.IsConnected', type: 'sensor', datatype: 'boolean', description: 'Helmet Bluetooth connected' },
+    { apiName: 'Vehicle.Communication.Teams.RideMode', type: 'sensor', datatype: 'string', description: 'Teams safety mode', allowed: ['stopped', 'city', 'urban', 'highway'] },
+    { apiName: 'Vehicle.Communication.Teams.CallState', type: 'sensor', datatype: 'string', description: 'Current call state', allowed: ['idle', 'incoming', 'active'] },
+  ],
+  Ntorq: [
+    { apiName: 'Vehicle.Speed', type: 'sensor', datatype: 'float', description: 'Current speed in km/h', min: 0, max: 120 },
+    { apiName: 'Vehicle.Powertrain.FuelSystem.Level', type: 'sensor', datatype: 'uint8', description: 'Fuel level percentage', min: 0, max: 100 },
+    { apiName: 'Vehicle.Powertrain.CombustionEngine.RPM', type: 'sensor', datatype: 'uint16', description: 'Engine RPM', min: 0, max: 10000 },
+    { apiName: 'Vehicle.Powertrain.Transmission.DriveMode', type: 'actuator', datatype: 'string', description: 'Ride mode', allowed: ['Street', 'Sport', 'Race'] },
+    { apiName: 'Vehicle.Body.Lights.Beam.Low.IsOn', type: 'actuator', datatype: 'boolean', description: 'Headlight on/off' },
+    { apiName: 'Vehicle.Connectivity.Bluetooth.IsConnected', type: 'sensor', datatype: 'boolean', description: 'SmartXonnect Bluetooth connected' },
+    { apiName: 'Vehicle.Communication.Teams.RideMode', type: 'sensor', datatype: 'string', description: 'Teams safety mode', allowed: ['stopped', 'city', 'urban', 'highway'] },
+    { apiName: 'Vehicle.Communication.Teams.CallState', type: 'sensor', datatype: 'string', description: 'Current call state', allowed: ['idle', 'incoming', 'active'] },
+    { apiName: 'Vehicle.Navigation.Turn.Direction', type: 'sensor', datatype: 'string', description: 'Navigation turn direction', allowed: ['left', 'right', 'straight', 'uturn'] },
+  ],
+  iQube: [
+    { apiName: 'Vehicle.Speed', type: 'sensor', datatype: 'float', description: 'Current speed in km/h', min: 0, max: 80 },
+    { apiName: 'Vehicle.Powertrain.TractionBattery.StateOfCharge.Percent', type: 'sensor', datatype: 'float', description: 'Battery percentage', min: 0, max: 100 },
+    { apiName: 'Vehicle.Powertrain.TractionBattery.Range', type: 'sensor', datatype: 'uint16', description: 'Estimated range in km', min: 0, max: 150 },
+    { apiName: 'Vehicle.Powertrain.ElectricMotor.DriveMode', type: 'actuator', datatype: 'string', description: 'Electric drive mode', allowed: ['Eco', 'Normal', 'Sport'] },
+    { apiName: 'Vehicle.Body.Lights.Beam.Low.IsOn', type: 'actuator', datatype: 'boolean', description: 'LED headlight' },
+    { apiName: 'Vehicle.Connectivity.Bluetooth.IsConnected', type: 'sensor', datatype: 'boolean', description: 'TFT Bluetooth connected' },
+    { apiName: 'Vehicle.Communication.Teams.RideMode', type: 'sensor', datatype: 'string', description: 'Teams safety mode', allowed: ['stopped', 'city', 'urban', 'highway'] },
+    { apiName: 'Vehicle.Communication.Teams.CallState', type: 'sensor', datatype: 'string', description: 'Current call state', allowed: ['idle', 'incoming', 'active'] },
+    { apiName: 'Vehicle.Connectivity.SmartXonnect.NavAudio.IsEnabled', type: 'actuator', datatype: 'boolean', description: 'Navigation audio to helmet' },
+    { apiName: 'Vehicle.Powertrain.TractionBattery.Charging.IsConnected', type: 'sensor', datatype: 'boolean', description: 'Charger connected' },
   ],
 };
 
@@ -120,6 +170,35 @@ function buildWidgetConfig(modelName) {
         widget(`${baseUrl}/terminal/index.html`, {}, [5, 10]),
       ],
     },
+    // TVS Two-Wheeler Models with Teams Rider/Pillion Views
+    Apache: {
+      autorun: false,
+      widgets: [
+        widget(`${baseUrl}/teams-rider/index.html`, { label: 'Teams - Rider View' }, [1, 2, 3, 4, 5]),
+        widget(`${baseUrl}/teams-pillion/index.html`, { label: 'Teams - Pillion View' }, [6, 7, 8, 9, 10]),
+      ],
+    },
+    Jupiter: {
+      autorun: false,
+      widgets: [
+        widget(`${baseUrl}/teams-rider/index.html`, { label: 'Teams - Rider View' }, [1, 2, 3, 4, 5]),
+        widget(`${baseUrl}/teams-pillion/index.html`, { label: 'Teams - Pillion View' }, [6, 7, 8, 9, 10]),
+      ],
+    },
+    Ntorq: {
+      autorun: false,
+      widgets: [
+        widget(`${baseUrl}/teams-rider/index.html`, { label: 'Teams - Rider View' }, [1, 2, 3, 4, 5]),
+        widget(`${baseUrl}/teams-pillion/index.html`, { label: 'Teams - Pillion View' }, [6, 7, 8, 9, 10]),
+      ],
+    },
+    iQube: {
+      autorun: false,
+      widgets: [
+        widget(`${baseUrl}/teams-rider/index.html`, { label: 'Teams - Rider View' }, [1, 2, 3, 4, 5]),
+        widget(`${baseUrl}/teams-pillion/index.html`, { label: 'Teams - Pillion View' }, [6, 7, 8, 9, 10]),
+      ],
+    },
   };
   return configs[modelName] || configs.Nexon;
 }
@@ -129,6 +208,18 @@ function buildBaseModelWidgetConfig(brandName) {
   const widget = (path, options, boxes) => ({ plugin: 'Builtin', widget: 'Widget', path, url: path, options, boxes });
   const baseApis = BRAND_BASE_FEATURES[brandName] || [];
   const apiNames = baseApis.map((a) => a.apiName).filter(Boolean);
+
+  // Special config for TVS two-wheelers with Teams Rider/Pillion views
+  if (brandName === 'TVS') {
+    return {
+      autorun: false,
+      widgets: [
+        widget(`${baseUrl}/teams-rider/index.html`, { label: 'Teams - Rider View' }, [1, 2, 3, 4, 5]),
+        widget(`${baseUrl}/teams-pillion/index.html`, { label: 'Teams - Pillion View' }, [6, 7, 8, 9, 10]),
+      ],
+    };
+  }
+
   return {
     autorun: false,
     widgets: [
@@ -175,9 +266,9 @@ async function seedModelFeatures() {
     }
     const userId = firstUser._id;
 
-    const modelNames = ['Nexon', 'Harrier', 'Curvv', 'XUV700', 'Thar'];
-    const brandIds = await Brand.find({ name: { $in: ['Tata', 'Mahindra'] } }).distinct('_id');
-    const brands = await Brand.find({ name: { $in: ['Tata', 'Mahindra'] } });
+    const modelNames = ['Nexon', 'Harrier', 'Curvv', 'XUV700', 'Thar', 'Apache', 'Jupiter', 'Ntorq', 'iQube'];
+    const brandIds = await Brand.find({ name: { $in: ['Tata', 'Mahindra', 'TVS'] } }).distinct('_id');
+    const brands = await Brand.find({ name: { $in: ['Tata', 'Mahindra', 'TVS'] } });
 
     // Seed Base Model with brand-specific base features for each brand
     for (const brand of brands) {

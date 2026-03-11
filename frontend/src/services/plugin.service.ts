@@ -15,12 +15,19 @@ export interface Plugin {
   image?: string
   description?: string
   is_internal: boolean
+  built_in?: boolean
   url?: string
   config?: any
   type?: 'prototype_function' | 'deploy' | string
   createdAt: string
   updatedAt: string
 }
+
+/** Slug for the built-in Microsoft Teams plugin (no external script). */
+export const TEAMS_PLUGIN_SLUG = 'microsoft-teams'
+
+/** Slug for the built-in Teams Ride Mode plugin for two-wheelers. */
+export const TEAMS_RIDE_PLUGIN_SLUG = 'teams-ride-mode'
 
 export interface Paged<T> {
   results: T[]

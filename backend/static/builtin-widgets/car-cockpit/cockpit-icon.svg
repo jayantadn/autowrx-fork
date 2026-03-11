@@ -1,0 +1,39 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="#0f0f0f"/>
+  
+  <!-- Screen frame -->
+  <rect x="6" y="10" width="52" height="38" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+  
+  <!-- Status bar -->
+  <rect x="8" y="12" width="48" height="8" rx="2" fill="#000"/>
+  <circle cx="14" cy="16" r="2" fill="#00d4ff"/>
+  <rect x="18" y="14" width="16" height="4" rx="1" fill="#333"/>
+  
+  <!-- Teams card -->
+  <rect x="10" y="24" width="44" height="20" rx="4" fill="url(#teamsGradient)"/>
+  <rect x="14" y="28" width="12" height="12" rx="3" fill="#5865F2"/>
+  <rect x="30" y="28" width="20" height="3" rx="1" fill="#fff" fill-opacity="0.8"/>
+  <rect x="30" y="34" width="14" height="2" rx="1" fill="#fff" fill-opacity="0.4"/>
+  
+  <!-- Ambient light -->
+  <rect x="6" y="46" width="52" height="2" rx="1" fill="url(#ambientGradient)"/>
+  
+  <!-- App icons -->
+  <circle cx="16" cy="56" r="4" fill="#5865F2"/>
+  <circle cx="28" cy="56" r="4" fill="#22c55e"/>
+  <circle cx="40" cy="56" r="4" fill="#ec4899"/>
+  <circle cx="52" cy="56" r="4" fill="#3b82f6"/>
+  
+  <defs>
+    <linearGradient id="teamsGradient" x1="10" y1="24" x2="54" y2="44">
+      <stop offset="0%" stop-color="#5865F2" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#5865F2" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="ambientGradient" x1="6" y1="47" x2="58" y2="47">
+      <stop offset="0%" stop-color="#5865F2"/>
+      <stop offset="50%" stop-color="#7289DA"/>
+      <stop offset="100%" stop-color="#5865F2"/>
+    </linearGradient>
+  </defs>
+</svg>

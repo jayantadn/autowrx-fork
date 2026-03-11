@@ -6,5 +6,7 @@ export type Brand = {
   name: string
   description?: string
   logo_url?: string
+  hood_closed_image?: string
+  hood_open_image?: string
   created_at?: Date
 }

@@ -36,6 +36,10 @@ const pluginSchema = new mongoose.Schema(
       default: false,
       required: true,
     },
+    built_in: {
+      type: Boolean,
+      default: false,
+    },
     url: {
       type: String,
     },

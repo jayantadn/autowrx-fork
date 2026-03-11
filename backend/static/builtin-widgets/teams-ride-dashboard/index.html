@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teams Ride Dashboard - TVS Two-Wheeler</title>
+  <script defer src="../syncer.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #0f1520 100%);
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .dashboard {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.5);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tvs-logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #e31837 0%, #c41230 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(227,24,55,0.3);
+    }
+
+    .brand-info h1 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .brand-info span {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .speed-display {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .speed-value {
+      font-size: 36px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .speed-unit {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .mode-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 20px;
+    }
+
+    .mode-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--mode-color, #22c55e);
+      box-shadow: 0 0 10px var(--mode-color, #22c55e);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .mode-name {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--mode-color, #22c55e);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .demo-badge {
+      padding: 5px 10px;
+      background: rgba(255,180,0,0.15);
+      color: #ffb400;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .time-display {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .helmet-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: rgba(34,197,94,0.1);
+      border-radius: 20px;
+    }
+
+    .helmet-status svg {
+      width: 18px;
+      height: 18px;
+      color: #22c55e;
+    }
+
+    .helmet-status span {
+      font-size: 11px;
+      color: #22c55e;
+    }
+
+    .audio-bars {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .audio-bar {
+      width: 3px;
+      background: #22c55e;
+      border-radius: 2px;
+      animation: audioWave 0.5s ease-in-out infinite;
+    }
+
+    .audio-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
+    .audio-bar:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+    .audio-bar:nth-child(3) { height: 8px; animation-delay: 0.2s; }
+    .audio-bar:nth-child(4) { height: 14px; animation-delay: 0.3s; }
+
+    @keyframes audioWave {
+      0%, 100% { transform: scaleY(0.5); }
+      50% { transform: scaleY(1); }
+    }
+
+    /* Main Content - Split View */
+    .main-content {
+      flex: 1;
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .view-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: rgba(0,0,0,0.3);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: rgba(0,0,0,0.4);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-icon.rider {
+      background: linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0.1) 100%);
+      color: #3b82f6;
+    }
+
+    .panel-icon.pillion {
+      background: linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(168,85,247,0.1) 100%);
+      color: #a855f7;
+    }
+
+    .panel-icon svg { width: 20px; height: 20px; }
+
+    .panel-label h3 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .panel-label span {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .access-badge {
+      padding: 5px 12px;
+      border-radius: 14px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .access-badge.limited {
+      background: rgba(251,146,60,0.15);
+      color: #fb923c;
+      border: 1px solid rgba(251,146,60,0.2);
+    }
+
+    .access-badge.full {
+      background: rgba(168,85,247,0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168,85,247,0.2);
+    }
+
+    /* Panel Content */
+    .panel-content {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    /* Teams Card */
+    .teams-card {
+      background: linear-gradient(135deg, rgba(88,101,242,0.12) 0%, rgba(88,101,242,0.04) 100%);
+      border: 1px solid rgba(88,101,242,0.15);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .teams-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .teams-logo {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(88,101,242,0.3);
+    }
+
+    .teams-logo svg { width: 20px; height: 20px; fill: #fff; }
+
+    .teams-info h4 { font-size: 13px; font-weight: 600; }
+    .teams-info span { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+    .meeting-subject {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .meeting-time-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .time-badge {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      padding: 6px 12px;
+      background: rgba(88,101,242,0.15);
+      border-radius: 12px;
+    }
+
+    .time-value {
+      font-size: 18px;
+      font-weight: 300;
+      color: #818cf8;
+    }
+
+    .time-unit {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .organizer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 600;
+    }
+
+    .organizer-name { font-size: 11px; }
+    .organizer-title { font-size: 9px; color: rgba(255,255,255,0.4); }
+
+    /* Voice Hint */
+    .voice-hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.12);
+      border-radius: 12px;
+    }
+
+    .voice-icon {
+      width: 34px;
+      height: 34px;
+      background: rgba(34,197,94,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: voicePulse 2s infinite;
+    }
+
+    @keyframes voicePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+    }
+
+    .voice-icon svg { width: 16px; height: 16px; color: #22c55e; }
+
+    .voice-text { flex: 1; }
+    .voice-command { font-size: 12px; font-weight: 600; color: #22c55e; }
+    .voice-desc { font-size: 9px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+    /* Action Buttons */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn svg { width: 18px; height: 18px; }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, #5865F2 0%, #6D7AE5 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(88,101,242,0.3);
+    }
+
+    .action-btn.primary:hover {
+      box-shadow: 0 6px 25px rgba(88,101,242,0.4);
+      transform: translateY(-2px);
+    }
+
+    .action-btn.secondary {
+      background: rgba(34,197,94,0.1);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+
+    .action-btn.pillion {
+      background: rgba(168,85,247,0.1);
+      color: #c084fc;
+      border: 1px solid rgba(168,85,247,0.2);
+    }
+
+    .action-btn.disabled {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.25);
+      cursor: not-allowed;
+    }
+
+    /* Call States */
+    .call-card {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .call-status {
+      font-size: 11px;
+      color: #22c55e;
+      margin-bottom: 4px;
+    }
+
+    .call-timer {
+      font-size: 28px;
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 8px;
+    }
+
+    .caller-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .caller-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .caller-name { font-size: 14px; font-weight: 500; }
+    .caller-title { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+    .call-controls {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .ctrl-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ctrl-btn svg { width: 22px; height: 22px; }
+
+    .ctrl-btn.mute {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .ctrl-btn.mute.active { background: #ef4444; }
+
+    .ctrl-btn.end {
+      background: #ef4444;
+      color: #fff;
+      width: 60px;
+      border-radius: 30px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .empty-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .empty-icon svg { width: 24px; height: 24px; opacity: 0.4; }
+    .empty-text { font-size: 12px; }
+
+    /* Safety Note */
+    .safety-note {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(251,146,60,0.08);
+      border: 1px solid rgba(251,146,60,0.15);
+      border-radius: 12px;
+    }
+
+    .safety-note svg { width: 20px; height: 20px; color: #fb923c; }
+    .safety-note p { font-size: 10px; color: #fb923c; flex: 1; }
+
+    /* Loading */
+    .loading {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(88,101,242,0.2);
+      border-top-color: #5865F2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="dashboard" id="app">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+
+    // State
+    let speed = 0;
+    let now = new Date();
+    let meeting = null;
+    let riderCallState = 'idle';
+    let pillionCallState = 'idle';
+    let activeCall = null;
+    let callStartTime = null;
+    let callDuration = '00:00';
+    let callTimer = null;
+    let isMuted = false;
+
+    // Mock data
+    const mockMeeting = {
+      id: 'm1',
+      subject: 'Sprint Planning - Connected Vehicles Team',
+      start: new Date(Date.now() + 15 * 60000).toISOString(),
+      organizer: { name: 'Priya Sharma', title: 'Product Lead' },
+      _isMock: true
+    };
+
+    const mockCaller = { name: 'Rajesh Kumar', title: 'Engineering Manager', initials: 'RK' };
+
+    // SVG Icons
+    const svg = {
+      teams: `<svg viewBox="0 0 24 24"><path d="M19.5 9.5c1.38 0 2.5 1.12 2.5 2.5v5c0 1.38-1.12 2.5-2.5 2.5H18v-7.5c0-1.38-1.12-2.5-2.5-2.5h-2.5V7c0-1.38 1.12-2.5 2.5-2.5h1c1.38 0 2.5 1.12 2.5 2.5v.5c.28 0 .5.22.5.5v1.5z"/><circle cx="16" cy="3.5" r="2"/><rect x="3" y="9" width="12" height="10" rx="2"/><circle cx="9" cy="6" r="3"/></svg>`,
+      mic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>`,
+      micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/></svg>`,
+      phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+      phoneOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>`,
+      calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>`,
+      helmet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12v5c0 1.66 1.34 3 3 3h2v-7H4.5C4.5 8.5 8 5 12 5s7.5 3.5 7.5 8H17v7h2c1.66 0 3-1.34 3-3v-5c0-5.52-4.48-10-10-10z"/></svg>`,
+      bike: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="M12 17V5l4 6h5"/></svg>`,
+      user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+      alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+    };
+
+    // Helpers
+    function getRideMode(spd) {
+      if (spd <= 0) return { name: 'STOPPED', color: '#22c55e' };
+      if (spd <= 30) return { name: 'CITY', color: '#3b82f6' };
+      if (spd <= 60) return { name: 'URBAN', color: '#f59e0b' };
+      return { name: 'HIGHWAY', color: '#ef4444' };
+    }
+
+    function canRiderJoin(spd) { return spd <= 0; }
+    function canRiderAnswer(spd) { return spd < 60; }
+
+    function formatTime(d) {
+      const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
+      return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    function formatTimeUntil(iso) {
+      const diff = Math.max(0, new Date(iso) - now);
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return `${mins}`;
+      return `${Math.floor(mins / 60)}h ${mins % 60}`;
+    }
+
+    function formatDuration(ms) {
+      const s = Math.floor(ms / 1000);
+      return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function getInitials(name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+
+    // Actions
+    window.startCall = function(who) {
+      activeCall = { ...mockCaller };
+      if (who === 'rider') riderCallState = 'active';
+      else pillionCallState = 'active';
+      callStartTime = Date.now();
+      callTimer = setInterval(() => {
+        callDuration = formatDuration(Date.now() - callStartTime);
+        draw();
+      }, 1000);
+      draw();
+    };
+
+    window.toggleMute = function() {
+      isMuted = !isMuted;
+      draw();
+    };
+
+    window.endCall = function() {
+      if (callTimer) clearInterval(callTimer);
+      callTimer = null;
+      activeCall = null;
+      riderCallState = 'idle';
+      pillionCallState = 'idle';
+      callDuration = '00:00';
+      isMuted = false;
+      draw();
+    };
+
+    window.joinMeeting = function(who) {
+      if (who === 'rider' && !canRiderJoin(speed)) return;
+      const url = meeting?.joinUrl || 'https://teams.microsoft.com/l/meetup-join/mock';
+      window.open(url, '_blank');
+    };
+
+    // API call
+    async function loadMeeting() {
+      try {
+        const r = await fetch(`${API}/v2/teams/meetings/next`, { credentials: 'include' });
+        return r.ok ? (await r.json()).meeting : null;
+      } catch { return null; }
+    }
+
+    // Main render
+    function draw() {
+      const el = document.getElementById('app');
+      const mode = getRideMode(speed);
+      const canJoin = canRiderJoin(speed);
+      const canAnswer = canRiderAnswer(speed);
+      const mt = meeting?.start ? formatTimeUntil(meeting.start) : '--';
+
+      const riderInCall = riderCallState === 'active';
+      const pillionInCall = pillionCallState === 'active';
+
+      el.innerHTML = `
+        <!-- Header -->
+        <div class="header" style="--mode-color: ${mode.color}">
+          <div class="brand-section">
+            <div class="tvs-logo">TVS</div>
+            <div class="brand-info">
+              <h1>Teams Ride Dashboard</h1>
+              <span>SmartXonnect Integration</span>
+            </div>
+          </div>
+
+          <div class="header-center">
+            <div class="speed-display">
+              <span class="speed-value">${Math.round(speed)}</span>
+              <span class="speed-unit">km/h</span>
+            </div>
+            <div class="mode-badge">
+              <div class="mode-dot"></div>
+              <span class="mode-name">${mode.name}</span>
+            </div>
+          </div>
+
+          <div class="header-right">
+            ${meeting?._isMock ? '<span class="demo-badge">DEMO</span>' : ''}
+            <span class="time-display">${formatTime(now)}</span>
+            <div class="helmet-status">
+              ${svg.helmet}
+              <span>Connected</span>
+              <div class="audio-bars">
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+                <div class="audio-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content - Split View -->
+        <div class="main-content">
+          <!-- Rider Panel -->
+          <div class="view-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-icon rider">${svg.bike}</div>
+                <div class="panel-label">
+                  <h3>Rider View</h3>
+                  <span>Safety-restricted based on speed</span>
+                </div>
+              </div>
+              <span class="access-badge ${canJoin ? 'full' : 'limited'}">${canJoin ? '✓ Full Access' : '⚠ Limited'}</span>
+            </div>
+
+            <div class="panel-content">
+              ${riderInCall && activeCall ? `
+                <div class="call-card">
+                  <div class="call-status">● Audio Call Active</div>
+                  <div class="call-timer">${callDuration}</div>
+                  <div class="caller-info">
+                    <div class="caller-avatar">${getInitials(activeCall.name)}</div>
+                    <div>
+                      <div class="caller-name">${activeCall.name}</div>
+                      <div class="caller-title">${activeCall.title}</div>
+                    </div>
+                  </div>
+                  <div class="call-controls">
+                    <button class="ctrl-btn mute ${isMuted ? 'active' : ''}" onclick="toggleMute()">${isMuted ? svg.micOff : svg.mic}</button>
+                    <button class="ctrl-btn end" onclick="endCall()">${svg.phoneOff}</button>
+                  </div>
+                </div>
+              ` : meeting ? `
+                <div class="teams-card">
+                  <div class="teams-header">
+                    <div class="teams-logo">${svg.teams}</div>
+                    <div class="teams-info">
+                      <h4>Microsoft Teams</h4>
+                      <span>Rider Mode</span>
+                    </div>
+                  </div>
+                  <div class="meeting-subject">${meeting.subject}</div>
+                  <div class="meeting-time-row">
+                    <div class="time-badge">
+                      <span class="time-value">${mt}</span>
+                      <span class="time-unit">min</span>
+                    </div>
+                    ${meeting.organizer?.name ? `
+                      <div class="organizer">
+                        <div class="avatar">${getInitials(meeting.organizer.name)}</div>
+                        <div>
+                          <div class="organizer-name">${meeting.organizer.name}</div>
+                          <div class="organizer-title">${meeting.organizer.title || 'Organizer'}</div>
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+
+                ${!canJoin ? `
+                  <div class="safety-note">
+                    ${svg.alert}
+                    <p>Stop vehicle to join meeting. Audio calls available below 60 km/h.</p>
+                  </div>
+                ` : ''}
+
+                <div class="voice-hint">
+                  <div class="voice-icon">${svg.mic}</div>
+                  <div class="voice-text">
+                    <div class="voice-command">"Hey TVS, join meeting"</div>
+                    <div class="voice-desc">${canJoin ? 'Voice command ready' : 'Stop to enable'}</div>
+                  </div>
+                </div>
+
+                <div class="action-row">
+                  <button class="action-btn ${canJoin ? 'primary' : 'disabled'}" onclick="joinMeeting('rider')">${svg.mic} ${canJoin ? 'Join Audio' : 'Stop First'}</button>
+                  <button class="action-btn ${canAnswer ? 'secondary' : 'disabled'}" onclick="startCall('rider')">${svg.phone} ${canAnswer ? 'Test Call' : 'Too Fast'}</button>
+                </div>
+              ` : `
+                <div class="empty-state">
+                  <div class="empty-icon">${svg.calendar}</div>
+                  <div class="empty-text">No scheduled meetings</div>
+                </div>
+                <div class="action-row">
+                  <button class="action-btn ${canAnswer ? 'secondary' : 'disabled'}" onclick="startCall('rider')">${svg.phone} Simulate Call</button>
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- Pillion Panel -->
+          <div class="view-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-icon pillion">${svg.user}</div>
+                <div class="panel-label">
+                  <h3>Pillion View</h3>
+                  <span>Passenger - Full access always</span>
+                </div>
+              </div>
+              <span class="access-badge full">✓ Full Access</span>
+            </div>
+
+            <div class="panel-content">
+              ${pillionInCall && activeCall ? `
+                <div class="call-card" style="background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.2);">
+                  <div class="call-status" style="color: #c084fc;">● Audio Call Active</div>
+                  <div class="call-timer">${callDuration}</div>
+                  <div class="caller-info">
+                    <div class="caller-avatar" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);">${getInitials(activeCall.name)}</div>
+                    <div>
+                      <div class="caller-name">${activeCall.name}</div>
+                      <div class="caller-title">${activeCall.title}</div>
+                    </div>
+                  </div>
+                  <div class="call-controls">
+                    <button class="ctrl-btn mute ${isMuted ? 'active' : ''}" onclick="toggleMute()">${isMuted ? svg.micOff : svg.mic}</button>
+                    <button class="ctrl-btn end" onclick="endCall()">${svg.phoneOff}</button>
+                  </div>
+                </div>
+              ` : meeting ? `
+                <div class="teams-card" style="background: linear-gradient(135deg, rgba(168,85,247,0.12) 0%, rgba(168,85,247,0.04) 100%); border-color: rgba(168,85,247,0.15);">
+                  <div class="teams-header">
+                    <div class="teams-logo" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);">${svg.teams}</div>
+                    <div class="teams-info">
+                      <h4>Microsoft Teams</h4>
+                      <span>Pillion Mode</span>
+                    </div>
+                  </div>
+                  <div class="meeting-subject">${meeting.subject}</div>
+                  <div class="meeting-time-row">
+                    <div class="time-badge" style="background: rgba(168,85,247,0.15);">
+                      <span class="time-value" style="color: #c084fc;">${mt}</span>
+                      <span class="time-unit">min</span>
+                    </div>
+                    ${meeting.organizer?.name ? `
+                      <div class="organizer">
+                        <div class="avatar" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);">${getInitials(meeting.organizer.name)}</div>
+                        <div>
+                          <div class="organizer-name">${meeting.organizer.name}</div>
+                          <div class="organizer-title">${meeting.organizer.title || 'Organizer'}</div>
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="voice-hint" style="background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.12);">
+                  <div class="voice-icon" style="background: rgba(168,85,247,0.15);">${svg.mic}</div>
+                  <div class="voice-text">
+                    <div class="voice-command" style="color: #c084fc;">"Hey TVS, join meeting"</div>
+                    <div class="voice-desc">Pillion - always available</div>
+                  </div>
+                </div>
+
+                <div class="action-row">
+                  <button class="action-btn primary" style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); box-shadow: 0 4px 15px rgba(168,85,247,0.3);" onclick="joinMeeting('pillion')">${svg.mic} Join Meeting</button>
+                  <button class="action-btn pillion" onclick="startCall('pillion')">${svg.phone} Test Call</button>
+                </div>
+              ` : `
+                <div class="empty-state">
+                  <div class="empty-icon">${svg.calendar}</div>
+                  <div class="empty-text">No scheduled meetings</div>
+                </div>
+                <div class="action-row">
+                  <button class="action-btn pillion" onclick="startCall('pillion')">${svg.phone} Simulate Call</button>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Events
+    window.onWidgetLoaded = async () => {
+      meeting = await loadMeeting() || mockMeeting;
+      draw();
+    };
+
+    window.onVssSync = (data) => {
+      if (data['Vehicle.Speed'] !== undefined) {
+        speed = parseFloat(data['Vehicle.Speed']) || 0;
+        draw();
+      }
+    };
+
+    setInterval(() => { now = new Date(); draw(); }, 60000);
+
+    setTimeout(async () => {
+      meeting = await loadMeeting() || mockMeeting;
+      draw();
+    }, 300);
+  </script>
+</body>
+</html>

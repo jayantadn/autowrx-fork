@@ -26,6 +26,14 @@ const brandSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    hood_closed_image: {
+      type: String,
+      trim: true,
+    },
+    hood_open_image: {
+      type: String,
+      trim: true,
+    },
     created_by: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',

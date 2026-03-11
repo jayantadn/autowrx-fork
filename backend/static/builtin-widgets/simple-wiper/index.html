@@ -5,43 +5,399 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../tailwind.min.css">
-    <script defer src="https://bestudio.digitalauto.tech/project/BzR91b49OHqj/syncer.js"></script>
+    <script defer src="../syncer.js"></script>
     <style>
-        #simulator-container {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            justify-content: center;
+            position: relative;
+        }
+
+        .windshield-wrapper {
+            position: relative;
+            width: 360px;
+            height: 240px;
+            perspective: 500px;
+        }
+
+        .windshield {
             width: 100%;
             height: 100%;
+            background: linear-gradient(180deg, 
+                rgba(180, 210, 235, 0.92) 0%,
+                rgba(150, 185, 215, 0.88) 30%,
+                rgba(120, 160, 195, 0.85) 60%,
+                rgba(100, 140, 175, 0.8) 100%);
+            border-radius: 20px 20px 60px 60px;
+            border: 8px solid #2c3e50;
+            box-shadow: 
+                inset 0 0 60px rgba(255,255,255,0.35),
+                inset 0 -30px 60px rgba(0,0,0,0.12),
+                0 15px 40px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+            transform: rotateX(5deg);
+        }
+
+        .windshield::before {
+            content: '';
+            position: absolute;
+            top: 8%;
+            left: 8%;
+            width: 35%;
+            height: 20%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 100%);
+            border-radius: 50%;
+        }
+
+        .rain-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(180deg, transparent, rgba(255,255,255,0.7));
+            border-radius: 50%;
+        }
+
+        .wiper-arm {
+            position: absolute;
+            bottom: 12px;
+            width: 5px;
+            height: 52%;
+            background: linear-gradient(90deg, #1a1a1a 0%, #3a3a3a 50%, #1a1a1a 100%);
+            transform-origin: bottom center;
+            z-index: 10;
+            border-radius: 3px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .wiper-arm.left {
+            left: 32%;
+            transform: rotate(-55deg);
+        }
+
+        .wiper-arm.right {
+            right: 32%;
+            transform: rotate(55deg);
+        }
+
+        .wiper-blade {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 10px;
+            background: linear-gradient(180deg, #2a2a2a 0%, #4a4a4a 40%, #2a2a2a 100%);
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+        }
+
+        .wiper-blade::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: #111;
+            border-radius: 0 0 3px 3px;
+        }
+
+        .wiper-arm.off {
+            animation: none;
+        }
+
+        .wiper-arm.left.slow { animation: wipe-left 3s ease-in-out infinite; }
+        .wiper-arm.right.slow { animation: wipe-right 3s ease-in-out infinite; }
+
+        .wiper-arm.left.medium { animation: wipe-left 1.6s ease-in-out infinite; }
+        .wiper-arm.right.medium { animation: wipe-right 1.6s ease-in-out infinite; }
+
+        .wiper-arm.left.fast { animation: wipe-left 0.7s ease-in-out infinite; }
+        .wiper-arm.right.fast { animation: wipe-right 0.7s ease-in-out infinite; }
+
+        .wiper-arm.left.interval { animation: wipe-left-interval 4s ease-in-out infinite; }
+        .wiper-arm.right.interval { animation: wipe-right-interval 4s ease-in-out infinite; }
+
+        .wiper-arm.left.rain_sensor { animation: wipe-left 2s ease-in-out infinite; }
+        .wiper-arm.right.rain_sensor { animation: wipe-right 2s ease-in-out infinite; }
+
+        @keyframes wipe-left {
+            0%, 100% { transform: rotate(-55deg); }
+            50% { transform: rotate(40deg); }
+        }
+
+        @keyframes wipe-right {
+            0%, 100% { transform: rotate(55deg); }
+            50% { transform: rotate(-40deg); }
+        }
+
+        @keyframes wipe-left-interval {
+            0%, 70%, 100% { transform: rotate(-55deg); }
+            85% { transform: rotate(40deg); }
+        }
+
+        @keyframes wipe-right-interval {
+            0%, 100% { transform: rotate(55deg); }
+            85% { transform: rotate(-40deg); }
+        }
+
+
+        .status-display {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 12px 25px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4b5563;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.active {
+            background: #22c55e;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.7);
+        }
+
+        .status-text {
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .speed-bars {
+            display: flex;
+            gap: 4px;
+            align-items: flex-end;
+        }
+
+        .speed-bar {
+            width: 6px;
+            background: #374151;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .speed-bar:nth-child(1) { height: 10px; }
+        .speed-bar:nth-child(2) { height: 16px; }
+        .speed-bar:nth-child(3) { height: 22px; }
+
+        .speed-bar.active {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+
+        @keyframes rain-fall {
+            0% { transform: translateY(-20px); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(250px); opacity: 0; }
         }
     </style>
 </head>
 
-<body class="h-screen grid place-items-center bg-slate-100 select-none">
-    <div id="simulator-container" class="w-full h-full">
-        <iframe id="wiper" src="https://playground-plugins.netlify.app/simulator/wiper-iframe/" frameborder="0"
-            style="width:100%;height:100%"></iframe>
+<body>
+    <div class="container">
+        
+        <div class="windshield-wrapper">
+            <div class="windshield">
+                <div id="rain-container" class="rain-container"></div>
+                <div id="wiper-left" class="wiper-arm left off">
+                    <div class="wiper-blade"></div>
+                </div>
+                <div id="wiper-right" class="wiper-arm right off">
+                    <div class="wiper-blade"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-display">
+            <div id="status-dot" class="status-dot"></div>
+            <span id="status-text" class="status-text">OFF</span>
+            <div class="speed-bars">
+                <div id="bar1" class="speed-bar"></div>
+                <div id="bar2" class="speed-bar"></div>
+                <div id="bar3" class="speed-bar"></div>
+            </div>
+        </div>
     </div>
 
     <script>
         let interval = null;
+        const wiperLeft = document.getElementById('wiper-left');
+        const wiperRight = document.getElementById('wiper-right');
+        const statusText = document.getElementById('status-text');
+        const statusDot = document.getElementById('status-dot');
+        const rainContainer = document.getElementById('rain-container');
+        const bar1 = document.getElementById('bar1');
+        const bar2 = document.getElementById('bar2');
+        const bar3 = document.getElementById('bar3');
+
+        let API_NAME = "Vehicle.Body.Windshield.Front.Wiping.Mode";
+        let lastValue = null;
+
+        function createRainDrops() {
+            rainContainer.innerHTML = '';
+            for (let i = 0; i < 60; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                drop.style.animationDuration = (0.4 + Math.random() * 0.4) + 's';
+                drop.style.animation = `rain-fall ${0.4 + Math.random() * 0.4}s linear infinite`;
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                rainContainer.appendChild(drop);
+            }
+        }
+
+        function updateDebug(rawValue) {
+            // Debug function - no visual output
+        }
+
+        function setWiperMode(mode) {
+            if (!wiperLeft || !wiperRight || !statusText || !statusDot) return;
+            
+            const m = (mode || 'OFF').toString().toUpperCase().replace(/-/g, '_');
+            
+            console.log('[Wiper Widget] Setting mode:', m);
+            
+            wiperLeft.className = 'wiper-arm left';
+            wiperRight.className = 'wiper-arm right';
+            bar1.classList.remove('active');
+            bar2.classList.remove('active');
+            bar3.classList.remove('active');
+            
+            if (m === 'OFF') {
+                wiperLeft.classList.add('off');
+                wiperRight.classList.add('off');
+                statusText.textContent = 'OFF';
+                statusDot.classList.remove('active');
+                rainContainer.style.opacity = '0';
+            } else if (m === 'SLOW') {
+                wiperLeft.classList.add('slow');
+                wiperRight.classList.add('slow');
+                statusText.textContent = 'SLOW';
+                statusDot.classList.add('active');
+                bar1.classList.add('active');
+                rainContainer.style.opacity = '0.3';
+            } else if (m === 'MEDIUM') {
+                wiperLeft.classList.add('medium');
+                wiperRight.classList.add('medium');
+                statusText.textContent = 'MEDIUM';
+                statusDot.classList.add('active');
+                bar1.classList.add('active');
+                bar2.classList.add('active');
+                rainContainer.style.opacity = '0.5';
+            } else if (m === 'FAST') {
+                wiperLeft.classList.add('fast');
+                wiperRight.classList.add('fast');
+                statusText.textContent = 'FAST';
+                statusDot.classList.add('active');
+                bar1.classList.add('active');
+                bar2.classList.add('active');
+                bar3.classList.add('active');
+                rainContainer.style.opacity = '0.8';
+            } else if (m === 'INTERVAL') {
+                wiperLeft.classList.add('interval');
+                wiperRight.classList.add('interval');
+                statusText.textContent = 'INTERVAL';
+                statusDot.classList.add('active');
+                bar1.classList.add('active');
+                rainContainer.style.opacity = '0.2';
+            } else if (m === 'RAIN_SENSOR') {
+                wiperLeft.classList.add('rain_sensor');
+                wiperRight.classList.add('rain_sensor');
+                statusText.textContent = 'AUTO';
+                statusDot.classList.add('active');
+                bar1.classList.add('active');
+                bar2.classList.add('active');
+                rainContainer.style.opacity = '0.4';
+            } else {
+                wiperLeft.classList.add('off');
+                wiperRight.classList.add('off');
+                statusText.textContent = m || 'OFF';
+                statusDot.classList.remove('active');
+                rainContainer.style.opacity = '0';
+            }
+        }
+
+        function processValue(rawValue) {
+            updateDebug(rawValue);
+            
+            if (rawValue !== undefined && rawValue !== null && rawValue !== lastValue) {
+                console.log('[Wiper Widget] Value changed from', lastValue, 'to', rawValue);
+                lastValue = rawValue;
+                setWiperMode(rawValue);
+            }
+        }
 
         function onWidgetLoaded(options) {
-            const API_NAME = options.api || "Vehicle.Body.Windshield.Front.Wiping.Mode";
-
-            //console.log("API_NAME: ", API_NAME);
+            API_NAME = options.api || "Vehicle.Body.Windshield.Front.Wiping.Mode";
+            console.log('[Wiper Widget] Initialized with API:', API_NAME);
+            
+            createRainDrops();
+            setWiperMode('OFF');
 
             interval = setInterval(() => {
-                let apiValueObject = getApiValue(API_NAME);
-                let apiValue = apiValueObject?.value || "OFF";
+                const rawValue = getApiValue(API_NAME);
+                processValue(rawValue);
+            }, options.dataUpdateInterval || 200);
+        }
 
-                //console.log("API_VALUE: ", apiValue);
-
-                const wiperIframe = document.getElementById("wiper");
-
-                if (apiValue === "MEDIUM") {
-                    wiperIframe.contentWindow.postMessage("LO", "*");
-                } else if (apiValue === "OFF") {
-                    wiperIframe.contentWindow.postMessage("OFF", "*");
-                }
-            }, options.dataUpdateInterval || 1000); // Default to 1 second if not provided
+        function onVssSync(data) {
+            console.log('[Wiper Widget] onVssSync received:', JSON.stringify(data));
+            
+            if (data && data[API_NAME] !== undefined) {
+                const rawValue = data[API_NAME];
+                processValue(rawValue);
+            }
         }
 
         function onWidgetUnloaded(options) {

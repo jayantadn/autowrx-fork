@@ -146,7 +146,7 @@ const PageModelList = () => {
       <div className="flex flex-col w-full h-full relative">
         <div className="sticky top-0 flex min-h-[52px] items-center border-b border-muted-foreground/50 bg-background z-50 px-4">
           <h1 className="text-lg font-semibold text-primary">
-            Select a Car Brand
+            Select a Brand
           </h1>
         </div>
 
@@ -154,7 +154,7 @@ const PageModelList = () => {
           <div className="flex flex-col w-full h-full bg-background rounded-lg overflow-y-auto">
             <div className="flex flex-col w-full container px-4 py-6">
               <p className="text-sm text-muted-foreground mb-6">
-                Choose a car brand to view and create prototypes for its vehicle
+                Select a vehicle brand to view and create prototypes for its vehicle
                 models.
               </p>
 

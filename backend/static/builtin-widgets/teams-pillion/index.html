@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teams - Pillion View</title>
+  <script defer src="../syncer.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0a0a0f;
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .pillion-view {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: linear-gradient(180deg, #1a2030 0%, #0f1218 50%, #0a0a0f 100%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Background - Over shoulder view */
+    .shoulder-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 30%;
+      background: linear-gradient(180deg, 
+        rgba(30,40,60,0.7) 0%,
+        rgba(20,25,35,0.8) 70%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Rider silhouette */
+    .rider-silhouette {
+      position: absolute;
+      bottom: 35%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 35%;
+      height: 45%;
+      background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+      border-radius: 40% 40% 30% 30%;
+      opacity: 0.6;
+    }
+
+    .rider-helmet {
+      position: absolute;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 35%;
+      background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%);
+      border-radius: 50% 50% 45% 45%;
+    }
+
+    /* Phone/Tablet Mount View */
+    .device-frame {
+      position: absolute;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 85%;
+      height: 55%;
+      background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+      border-radius: 24px;
+      box-shadow: 
+        0 0 0 3px #2a2a2a,
+        0 0 0 5px #1a1a1a,
+        0 15px 50px rgba(0,0,0,0.8),
+        inset 0 0 40px rgba(0,0,0,0.4);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.5);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tvs-badge {
+      padding: 4px 10px;
+      background: linear-gradient(135deg, #e31837 0%, #c41230 100%);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .pillion-badge {
+      padding: 4px 10px;
+      background: rgba(168,85,247,0.15);
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 12px;
+      font-size: 10px;
+      color: #a855f7;
+      font-weight: 500;
+    }
+
+    .demo-tag {
+      padding: 3px 8px;
+      background: rgba(255,180,0,0.15);
+      color: #ffb400;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+    }
+
+    .speed-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 12px;
+      color: var(--mode-color, #22c55e);
+    }
+
+    .speed-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--mode-color, #22c55e);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .time-display {
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    /* Teams Header */
+    .teams-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .teams-logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(88,101,242,0.4);
+    }
+
+    .teams-logo svg { width: 24px; height: 24px; fill: #fff; }
+
+    .teams-info { flex: 1; }
+    .teams-title { font-size: 15px; font-weight: 600; }
+    .teams-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+    .full-access-badge {
+      padding: 6px 12px;
+      background: linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(168,85,247,0.1) 100%);
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 16px;
+      font-size: 10px;
+      color: #c084fc;
+      font-weight: 600;
+    }
+
+    /* Meeting Card */
+    .meeting-card {
+      background: linear-gradient(135deg, rgba(88,101,242,0.12) 0%, rgba(88,101,242,0.04) 100%);
+      border: 1px solid rgba(88,101,242,0.18);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .meeting-subject {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .meeting-details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .meeting-time {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .time-big {
+      font-size: 26px;
+      font-weight: 300;
+      color: #818cf8;
+    }
+
+    .time-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .meeting-meta {
+      flex: 1;
+    }
+
+    .organizer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .organizer-name { font-size: 11px; }
+    .organizer-role { font-size: 9px; color: rgba(255,255,255,0.4); }
+
+    /* Pillion Access Notice */
+    .pillion-access {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(168,85,247,0.02) 100%);
+      border: 1px solid rgba(168,85,247,0.15);
+      border-radius: 12px;
+    }
+
+    .pillion-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(168,85,247,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pillion-icon svg { width: 18px; height: 18px; color: #a855f7; }
+
+    .pillion-text { flex: 1; }
+    .pillion-title { font-size: 11px; font-weight: 600; color: #c084fc; }
+    .pillion-desc { font-size: 9px; color: rgba(255,255,255,0.4); }
+
+    /* Action Buttons */
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn svg { width: 18px; height: 18px; }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, #5865F2 0%, #6D7AE5 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(88,101,242,0.35);
+    }
+
+    .action-btn.primary:hover {
+      box-shadow: 0 6px 25px rgba(88,101,242,0.5);
+      transform: translateY(-2px);
+    }
+
+    .action-btn.secondary {
+      background: rgba(168,85,247,0.1);
+      color: #c084fc;
+      border: 1px solid rgba(168,85,247,0.2);
+    }
+
+    .action-btn.voice {
+      background: rgba(34,197,94,0.1);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+
+    /* Voice Hint */
+    .voice-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.12);
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .voice-hint svg { width: 16px; height: 16px; color: #22c55e; }
+    .voice-hint span { font-size: 11px; color: #22c55e; }
+
+    /* ========== IN CALL STATE ========== */
+    .call-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .call-header {
+      text-align: center;
+      padding: 12px;
+      background: rgba(34,197,94,0.1);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .call-status {
+      font-size: 11px;
+      color: #22c55e;
+      margin-bottom: 4px;
+    }
+
+    .call-timer {
+      font-size: 28px;
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .caller-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .caller-avatar-large {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 30px rgba(88,101,242,0.3);
+    }
+
+    .caller-name-large {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .caller-title-large {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .call-controls {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .ctrl-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ctrl-btn svg { width: 22px; height: 22px; }
+
+    .ctrl-btn.mute {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .ctrl-btn.mute.active {
+      background: #ef4444;
+    }
+
+    .ctrl-btn.end {
+      background: #ef4444;
+      color: #fff;
+      width: 64px;
+      border-radius: 32px;
+    }
+
+    .ctrl-btn.end:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+
+    /* ========== INCOMING CALL ========== */
+    .incoming-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(168,85,247,0.95) 0%, rgba(126,58,195,0.98) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      border-radius: 24px;
+    }
+
+    .incoming-overlay.hidden { display: none; }
+
+    .incoming-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      animation: ringPulse 1.5s infinite;
+    }
+
+    @keyframes ringPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+      50% { box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+    }
+
+    .incoming-name {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .incoming-title {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-bottom: 8px;
+    }
+
+    .pillion-notice {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      font-size: 10px;
+      margin-bottom: 24px;
+    }
+
+    .incoming-actions {
+      display: flex;
+      gap: 40px;
+    }
+
+    .incoming-btn {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .incoming-btn:hover { transform: scale(1.1); }
+
+    .incoming-btn svg { width: 26px; height: 26px; }
+    .incoming-btn span { font-size: 9px; margin-top: 4px; }
+
+    .incoming-btn.answer {
+      background: #fff;
+      color: #a855f7;
+    }
+
+    .incoming-btn.decline {
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+
+    /* Empty State */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.3);
+      padding: 20px;
+    }
+
+    .empty-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .empty-icon svg { width: 24px; height: 24px; opacity: 0.4; }
+    .empty-text { font-size: 13px; margin-bottom: 4px; }
+    .empty-sub { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+    /* Helmet Indicator */
+    .helmet-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      background: rgba(0,0,0,0.3);
+      font-size: 10px;
+    }
+
+    .helmet-bar svg { width: 14px; height: 14px; color: #22c55e; }
+
+    .audio-bars {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 12px;
+    }
+
+    .audio-bar {
+      width: 2px;
+      background: #22c55e;
+      border-radius: 1px;
+      animation: audioWave 0.5s ease-in-out infinite;
+    }
+
+    .audio-bar:nth-child(1) { height: 5px; animation-delay: 0s; }
+    .audio-bar:nth-child(2) { height: 9px; animation-delay: 0.1s; }
+    .audio-bar:nth-child(3) { height: 7px; animation-delay: 0.2s; }
+    .audio-bar:nth-child(4) { height: 11px; animation-delay: 0.3s; }
+    .audio-bar:nth-child(5) { height: 6px; animation-delay: 0.4s; }
+
+    @keyframes audioWave {
+      0%, 100% { transform: scaleY(0.5); }
+      50% { transform: scaleY(1); }
+    }
+
+    /* Loading */
+    .loading {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(168,85,247,0.2);
+      border-top-color: #a855f7;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="pillion-view" id="app">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+
+    // State
+    let speed = 0;
+    let now = new Date();
+    let meeting = null;
+    let callState = 'idle';
+    let incomingCall = null;
+    let activeCall = null;
+    let callStartTime = null;
+    let callDuration = '00:00';
+    let callTimer = null;
+    let isMuted = false;
+
+    // Mock data
+    const mockCallers = [
+      { id: '1', name: 'Rajesh Kumar', title: 'Engineering Manager', initials: 'RK' },
+      { id: '2', name: 'Priya Sharma', title: 'Product Lead', initials: 'PS' },
+      { id: '3', name: 'Amit Patel', title: 'Team Lead', initials: 'AP' },
+    ];
+
+    const mockMeeting = {
+      id: 'm1',
+      subject: 'Sprint Planning - Connected Vehicles',
+      start: new Date(Date.now() + 15 * 60000).toISOString(),
+      organizer: { name: 'Priya Sharma', title: 'Product Lead' },
+      _isMock: true
+    };
+
+    // SVG Icons
+    const svg = {
+      teams: `<svg viewBox="0 0 24 24"><path d="M19.5 9.5c1.38 0 2.5 1.12 2.5 2.5v5c0 1.38-1.12 2.5-2.5 2.5H18v-7.5c0-1.38-1.12-2.5-2.5-2.5h-2.5V7c0-1.38 1.12-2.5 2.5-2.5h1c1.38 0 2.5 1.12 2.5 2.5v.5c.28 0 .5.22.5.5v1.5z"/><circle cx="16" cy="3.5" r="2"/><rect x="3" y="9" width="12" height="10" rx="2"/><circle cx="9" cy="6" r="3"/></svg>`,
+      mic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>`,
+      micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/></svg>`,
+      phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+      phoneOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>`,
+      calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>`,
+      helmet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12v5c0 1.66 1.34 3 3 3h2v-7H4.5C4.5 8.5 8 5 12 5s7.5 3.5 7.5 8H17v7h2c1.66 0 3-1.34 3-3v-5c0-5.52-4.48-10-10-10z"/></svg>`,
+      user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+    };
+
+    // Helpers
+    function getRideMode(spd) {
+      if (spd <= 0) return { name: 'STOPPED', color: '#22c55e' };
+      if (spd <= 30) return { name: 'CITY', color: '#3b82f6' };
+      if (spd <= 60) return { name: 'URBAN', color: '#f59e0b' };
+      return { name: 'HIGHWAY', color: '#ef4444' };
+    }
+
+    function formatTime(d) {
+      const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
+      return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    function formatTimeUntil(iso) {
+      const diff = Math.max(0, new Date(iso) - now);
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return `${mins}`;
+      return `${Math.floor(mins / 60)}h ${mins % 60}`;
+    }
+
+    function formatDuration(ms) {
+      const s = Math.floor(ms / 1000);
+      return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function getInitials(name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+
+    // Actions - Pillion always has full access
+    window.simulateIncomingCall = function() {
+      const caller = mockCallers[Math.floor(Math.random() * mockCallers.length)];
+      incomingCall = { ...caller };
+      callState = 'incoming';
+      draw();
+    };
+
+    window.answerCall = function() {
+      activeCall = { ...incomingCall };
+      incomingCall = null;
+      callState = 'active';
+      callStartTime = Date.now();
+      callTimer = setInterval(() => {
+        callDuration = formatDuration(Date.now() - callStartTime);
+        draw();
+      }, 1000);
+      draw();
+    };
+
+    window.declineCall = function() {
+      incomingCall = null;
+      callState = 'idle';
+      draw();
+    };
+
+    window.toggleMute = function() {
+      isMuted = !isMuted;
+      draw();
+    };
+
+    window.endCall = function() {
+      if (callTimer) clearInterval(callTimer);
+      callTimer = null;
+      activeCall = null;
+      callState = 'idle';
+      callDuration = '00:00';
+      isMuted = false;
+      draw();
+    };
+
+    window.joinMeeting = function() {
+      const url = meeting?.joinUrl || 'https://teams.microsoft.com/l/meetup-join/mock';
+      window.open(url, '_blank');
+    };
+
+    // API call
+    async function loadMeeting() {
+      try {
+        const r = await fetch(`${API}/v2/teams/meetings/next`, { credentials: 'include' });
+        return r.ok ? (await r.json()).meeting : null;
+      } catch { return null; }
+    }
+
+    // Main render
+    function draw() {
+      const el = document.getElementById('app');
+      const mode = getRideMode(speed);
+      const mt = meeting?.start ? formatTimeUntil(meeting.start) : '--';
+
+      let mainContent = '';
+
+      if (callState === 'active' && activeCall) {
+        mainContent = `
+          <div class="call-view">
+            <div class="call-header">
+              <div class="call-status">● Audio Call Active</div>
+              <div class="call-timer">${callDuration}</div>
+            </div>
+            <div class="caller-section">
+              <div class="caller-avatar-large">${getInitials(activeCall.name)}</div>
+              <div class="caller-name-large">${activeCall.name}</div>
+              <div class="caller-title-large">${activeCall.title || ''}</div>
+            </div>
+            <div class="call-controls">
+              <button class="ctrl-btn mute ${isMuted ? 'active' : ''}" onclick="toggleMute()">${isMuted ? svg.micOff : svg.mic}</button>
+              <button class="ctrl-btn end" onclick="endCall()">${svg.phoneOff}</button>
+            </div>
+          </div>
+        `;
+      } else if (meeting) {
+        mainContent = `
+          <div class="teams-header">
+            <div class="teams-logo">${svg.teams}</div>
+            <div class="teams-info">
+              <div class="teams-title">Microsoft Teams</div>
+              <div class="teams-sub">Pillion Passenger View</div>
+            </div>
+            <span class="full-access-badge">✓ Full Access</span>
+          </div>
+
+          <div class="meeting-card">
+            <div class="meeting-subject">${meeting.subject || 'Team Meeting'}</div>
+            <div class="meeting-details">
+              <div class="meeting-time">
+                <span class="time-big">${mt}</span>
+                <span class="time-label">min</span>
+              </div>
+              <div class="meeting-meta">
+                ${meeting.organizer?.name ? `
+                  <div class="organizer">
+                    <div class="avatar">${getInitials(meeting.organizer.name)}</div>
+                    <div>
+                      <div class="organizer-name">${meeting.organizer.name}</div>
+                      <div class="organizer-role">${meeting.organizer.title || 'Organizer'}</div>
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          <div class="pillion-access">
+            <div class="pillion-icon">${svg.user}</div>
+            <div class="pillion-text">
+              <div class="pillion-title">Pillion Passenger Mode</div>
+              <div class="pillion-desc">Full audio access at any speed • Not driving</div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="action-btn primary" onclick="joinMeeting()">${svg.mic} Join Meeting</button>
+            <button class="action-btn secondary" onclick="simulateIncomingCall()">${svg.phone} Test Call</button>
+          </div>
+
+          <div class="voice-hint">
+            ${svg.mic}
+            <span>"Hey TVS, join meeting" • Voice commands enabled</span>
+          </div>
+        `;
+      } else {
+        mainContent = `
+          <div class="teams-header">
+            <div class="teams-logo">${svg.teams}</div>
+            <div class="teams-info">
+              <div class="teams-title">Microsoft Teams</div>
+              <div class="teams-sub">Pillion Passenger View</div>
+            </div>
+            <span class="full-access-badge">✓ Full Access</span>
+          </div>
+
+          <div class="empty-state">
+            <div class="empty-icon">${svg.calendar}</div>
+            <div class="empty-text">No scheduled meetings</div>
+            <div class="empty-sub">You can still receive calls anytime</div>
+          </div>
+
+          <div class="action-row">
+            <button class="action-btn secondary" onclick="simulateIncomingCall()">${svg.phone} Simulate Incoming Call</button>
+          </div>
+        `;
+      }
+
+      el.innerHTML = `
+        <div class="shoulder-view"></div>
+        <div class="rider-silhouette">
+          <div class="rider-helmet"></div>
+        </div>
+
+        <div class="device-frame" style="--mode-color: ${mode.color};">
+          <div class="status-bar">
+            <div class="status-left">
+              <span class="tvs-badge">TVS</span>
+              <span class="pillion-badge">Pillion</span>
+              ${meeting?._isMock ? '<span class="demo-tag">DEMO</span>' : ''}
+            </div>
+            <div class="status-right">
+              <span class="speed-badge"><span class="dot"></span>${Math.round(speed)} km/h</span>
+              <span class="time-display">${formatTime(now)}</span>
+            </div>
+          </div>
+
+          <div class="main-content">
+            ${mainContent}
+          </div>
+
+          <div class="helmet-bar">
+            ${svg.helmet}
+            <span style="color:rgba(255,255,255,0.6)">Helmet Audio Connected</span>
+            <div class="audio-bars">
+              <div class="audio-bar"></div>
+              <div class="audio-bar"></div>
+              <div class="audio-bar"></div>
+              <div class="audio-bar"></div>
+              <div class="audio-bar"></div>
+            </div>
+          </div>
+
+          ${callState === 'incoming' && incomingCall ? `
+            <div class="incoming-overlay">
+              <div class="incoming-avatar">${getInitials(incomingCall.name)}</div>
+              <div class="incoming-name">${incomingCall.name}</div>
+              <div class="incoming-title">${incomingCall.title || 'Teams Call'}</div>
+              <div class="pillion-notice">🎧 Pillion - Full access enabled</div>
+              <div class="incoming-actions">
+                <button class="incoming-btn decline" onclick="declineCall()">
+                  ${svg.phoneOff}
+                  <span>Decline</span>
+                </button>
+                <button class="incoming-btn answer" onclick="answerCall()">
+                  ${svg.phone}
+                  <span>Answer</span>
+                </button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // Events
+    window.onWidgetLoaded = async () => {
+      meeting = await loadMeeting() || mockMeeting;
+      draw();
+    };
+
+    window.onVssSync = (data) => {
+      if (data['Vehicle.Speed'] !== undefined) {
+        speed = parseFloat(data['Vehicle.Speed']) || 0;
+        draw();
+      }
+    };
+
+    setInterval(() => { now = new Date(); if (callState === 'idle') draw(); }, 60000);
+
+    setTimeout(async () => {
+      meeting = await loadMeeting() || mockMeeting;
+      draw();
+    }, 300);
+  </script>
+</body>
+</html>

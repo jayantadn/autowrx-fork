@@ -69,7 +69,7 @@ const WidgetItem: FC<PropsWidgetItem> = ({
     frameElement?.current?.contentWindow?.postMessage(
       JSON.stringify({
         cmd: 'vss-sync',
-        vssData: apisValue,
+        vssData: setData,
       }),
       '*',
     )
@@ -97,10 +97,11 @@ const WidgetItem: FC<PropsWidgetItem> = ({
     )
   }
 
+  // Send app log to widget when iframe is loaded and log changes
   useEffect(() => {
-    if (!appLog) return
+    if (!iframeLoaded || !appLog) return
     sendAppLogToWidget(appLog)
-  }, [appLog])
+  }, [appLog, iframeLoaded])
 
   // Send VSS tree to widget when both iframe is loaded AND vssTree is available
   useEffect(() => {

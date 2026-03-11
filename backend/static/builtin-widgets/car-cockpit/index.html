@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Dashboard - Teams</title>
+  <script defer src="../syncer.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .car-interior {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #151515 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Dashboard surface */
+    .dashboard-surface {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 25%;
+      background: linear-gradient(180deg, #4a4a4a 0%, #3a3a3a 20%, #2a2a2a 100%);
+      border-radius: 50% 50% 0 0 / 30% 30% 0 0;
+    }
+
+    /* Dashboard trim - silver bar */
+    .dashboard-trim {
+      position: absolute;
+      bottom: 22%;
+      left: 5%;
+      right: 5%;
+      height: 8%;
+      background: linear-gradient(180deg, #b8b8b8 0%, #a0a0a0 30%, #888 60%, #666 100%);
+      border-radius: 100px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    /* Air vent right */
+    .air-vent {
+      position: absolute;
+      right: 3%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4%;
+      height: 35%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .vent-slot {
+      height: 3px;
+      background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+      border-radius: 2px;
+    }
+
+    /* Steering wheel on left */
+    .steering-wheel {
+      position: absolute;
+      left: -12%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32%;
+      aspect-ratio: 1;
+      z-index: 10;
+    }
+
+    .steering-outer {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 30%, #1a1a1a 70%, #252525 100%);
+      border: 8px solid #1a1a1a;
+      box-shadow: 
+        inset 0 0 20px rgba(0,0,0,0.5),
+        0 5px 20px rgba(0,0,0,0.4),
+        inset 2px 2px 5px rgba(255,255,255,0.05);
+      position: relative;
+    }
+
+    .steering-inner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 35%;
+      height: 35%;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #151515 100%);
+      border: 3px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .steering-logo {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Steering spokes */
+    .spoke {
+      position: absolute;
+      background: linear-gradient(90deg, #3a3a3a 0%, #2a2a2a 50%, #3a3a3a 100%);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px rgba(0,0,0,0.3);
+    }
+
+    .spoke-left {
+      width: 25%;
+      height: 12px;
+      top: 50%;
+      left: 18%;
+      transform: translateY(-50%);
+      border-radius: 4px;
+    }
+
+    .spoke-right {
+      width: 25%;
+      height: 12px;
+      top: 50%;
+      right: 18%;
+      transform: translateY(-50%);
+      border-radius: 4px;
+    }
+
+    .spoke-bottom {
+      width: 12px;
+      height: 20%;
+      bottom: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 4px;
+    }
+
+    /* Steering grip texture */
+    .steering-grip {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      border-radius: 50%;
+      border: 14px solid transparent;
+      border-top-color: #2d2d2d;
+      border-bottom-color: #2d2d2d;
+    }
+
+    /* Main screen container */
+    .screen-frame {
+      position: relative;
+      width: 85%;
+      height: 70%;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 
+        0 0 0 3px #1a1a1a,
+        0 0 0 5px #333,
+        0 10px 40px rgba(0,0,0,0.6),
+        inset 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    .screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #1a1d24 0%, #12151a 50%, #0d1015 100%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top status bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .meeting-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .time-display {
+      margin-left: auto;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 8px;
+      margin-left: 12px;
+    }
+
+    .status-icon {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Main content area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    /* Left sidebar */
+    .sidebar {
+      width: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar-item {
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sidebar-item:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .sidebar-item.active {
+      background: rgba(88,101,242,0.15);
+      border: 1px solid rgba(88,101,242,0.3);
+    }
+
+    .sidebar-item svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0.6;
+    }
+
+    .sidebar-item.active svg { opacity: 1; }
+
+    .sidebar-label {
+      font-size: 7px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .sidebar-item.active .sidebar-label {
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Center area with circular gauges */
+    .center-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    /* Circular gauge */
+    .gauge {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    .gauge-ring {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+
+    .gauge-ring::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      border-radius: 50%;
+      border: 4px solid transparent;
+      border-top-color: #f97316;
+      transform: rotate(-45deg);
+    }
+
+    .gauge.teal .gauge-ring::before {
+      border-top-color: #14b8a6;
+      border-right-color: #14b8a6;
+      transform: rotate(0deg);
+    }
+
+    .gauge-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .gauge-icon {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 4px;
+      opacity: 0.8;
+    }
+
+    .gauge-value {
+      font-size: 32px;
+      font-weight: 300;
+      letter-spacing: -1px;
+    }
+
+    .gauge-label {
+      font-size: 9px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+    }
+
+    /* Right panel */
+    .right-panel {
+      width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .time-widget {
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .time-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+
+    .time-circle::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: #14b8a6;
+      border-right-color: #14b8a6;
+    }
+
+    .time-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .time-info {
+      flex: 1;
+    }
+
+    .time-info-label {
+      font-size: 9px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .time-info-value {
+      font-size: 11px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Teams meeting info */
+    .meeting-info {
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .meeting-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .meeting-row svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0.5;
+    }
+
+    .meeting-text {
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .meeting-text.highlight {
+      color: #14b8a6;
+    }
+
+    /* Mode preference section */
+    .preference-section {
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .preference-label {
+      font-size: 9px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 6px;
+    }
+
+    .mode-buttons {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .mode-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.5);
+    }
+
+    .mode-btn.active {
+      background: rgba(249,115,22,0.2);
+      color: #f97316;
+      border: 1px solid rgba(249,115,22,0.3);
+    }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      gap: 12px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .bottom-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .bottom-btn.primary {
+      background: #5865F2;
+      color: #fff;
+    }
+
+    .bottom-btn.secondary {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.7);
+    }
+
+    .bottom-btn.mute {
+      background: #ef4444;
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    .bottom-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Bottom indicator dots */
+    .bottom-dots {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .dot.active { background: rgba(255,255,255,0.6); }
+
+    /* Home indicator */
+    .home-indicator {
+      width: 40px;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      margin: 0 auto;
+    }
+
+    /* Demo badge */
+    .demo-badge {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      font-size: 8px;
+      font-weight: 700;
+      padding: 3px 6px;
+      background: rgba(255,180,0,0.15);
+      color: #ffb400;
+      border-radius: 4px;
+    }
+
+    /* Loading */
+    .loading {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(88,101,242,0.2);
+      border-top-color: #5865F2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="car-interior" id="app">
+    <div class="screen-frame">
+      <div class="screen">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    let meeting = null, speed = 0, now = new Date(), mode = 'driver';
+
+    const svg = {
+      teams: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 9.5c1.38 0 2.5 1.12 2.5 2.5v5c0 1.38-1.12 2.5-2.5 2.5H18v-7.5c0-1.38-1.12-2.5-2.5-2.5h-2.5V7c0-1.38 1.12-2.5 2.5-2.5h1c1.38 0 2.5 1.12 2.5 2.5v.5c.28 0 .5.22.5.5v1.5z"/><circle cx="16" cy="3.5" r="2"/><rect x="3" y="9" width="12" height="10" rx="2"/><circle cx="9" cy="6" r="3"/></svg>`,
+      video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
+      videoOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7c0-1.1.9-2 2-2h2m6 0h3c1.1 0 2 .9 2 2v3l5-4v10"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
+      mic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>`,
+      micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .28-.02.56-.05.83"/><line x1="12" y1="19" x2="12" y2="23"/></svg>`,
+      phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+      media: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>`,
+      car: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>`,
+      nav: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`,
+      settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+      driver: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>`,
+      passenger: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+      user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+      calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+      share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`
+    };
+
+    async function load() {
+      try {
+        const r = await fetch(`${API}/v2/teams/meetings/next`, {credentials:'include'});
+        return r.ok ? (await r.json()).meeting : null;
+      } catch { return null; }
+    }
+
+    function fmt(d) {
+      const h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
+      return { t: `${h%12||12}:${m}`, p: h>=12?'PM':'AM', full: `${h%12||12}:${m} ${h>=12?'PM':'AM'}` };
+    }
+
+    function media() {
+      const mv = speed > 5;
+      return mode === 'passenger' ? {v:true,a:true} : mv ? {v:false,a:true} : {v:true,a:true};
+    }
+
+    window.setMode = m => { mode = m; draw(); };
+
+    function draw() {
+      const el = document.getElementById('app');
+      const t = fmt(now), mv = speed > 5, m = media();
+      const mt = meeting?.start ? fmt(new Date(meeting.start)) : {t:'--:--',p:''};
+      const url = meeting?.onlineMeeting?.joinUrl, ok = !!url;
+
+      el.innerHTML = `
+        <div class="dashboard-surface"></div>
+        <div class="dashboard-trim"></div>
+        <div class="air-vent">${Array(8).fill('<div class="vent-slot"></div>').join('')}</div>
+        <div class="steering-wheel">
+          <div class="steering-outer">
+            <div class="steering-grip"></div>
+            <div class="spoke spoke-left"></div>
+            <div class="spoke spoke-right"></div>
+            <div class="spoke spoke-bottom"></div>
+            <div class="steering-inner">
+              <span class="steering-logo">BOSCH</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-frame">
+          <div class="screen">
+            ${meeting?._isMock ? '<div class="demo-badge">DEMO</div>' : ''}
+
+            <div class="top-bar">
+              <span class="meeting-title">${meeting?.subject || 'Microsoft Teams'}</span>
+              <span class="time-display">${t.full}</span>
+              <div class="status-icons">
+                <span class="status-icon">LTE</span>
+                <span class="status-icon">100%</span>
+              </div>
+            </div>
+
+            <div class="main-content">
+              <div class="sidebar">
+                <div class="sidebar-item">
+                  ${svg.phone}
+                  <span class="sidebar-label">Calling</span>
+                </div>
+                <div class="sidebar-item active">
+                  ${svg.teams}
+                  <span class="sidebar-label">Teams</span>
+                </div>
+                <div class="sidebar-item">
+                  ${svg.media}
+                  <span class="sidebar-label">Media</span>
+                </div>
+                <div class="sidebar-item">
+                  ${svg.car}
+                  <span class="sidebar-label">Vehicle</span>
+                </div>
+                <div class="sidebar-item">
+                  ${svg.nav}
+                  <span class="sidebar-label">Nav</span>
+                </div>
+              </div>
+
+              <div class="center-area">
+                <div class="gauge">
+                  <div class="gauge-ring"></div>
+                  <div class="gauge-content">
+                    <div class="gauge-icon">${m.v ? svg.video : svg.videoOff}</div>
+                    <div class="gauge-value">${m.v ? 'ON' : 'OFF'}</div>
+                    <div class="gauge-label">VIDEO</div>
+                  </div>
+                </div>
+
+                <div style="text-align:center">
+                  <div style="font-size:48px;font-weight:200;letter-spacing:-2px;margin-bottom:4px">${String(Math.round(speed)).padStart(2,'0')}</div>
+                  <div style="font-size:10px;color:rgba(255,255,255,0.4)">km/h</div>
+                  <div class="preference-section">
+                    <div class="preference-label">User Mode</div>
+                    <div class="mode-buttons">
+                      <button class="mode-btn ${mode==='driver'?'active':''}" onclick="setMode('driver')">Driver</button>
+                      <button class="mode-btn ${mode==='passenger'?'active':''}" onclick="setMode('passenger')">Passenger</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="gauge teal">
+                  <div class="gauge-ring"></div>
+                  <div class="gauge-content">
+                    <div class="gauge-icon">${svg.mic}</div>
+                    <div class="gauge-value">ON</div>
+                    <div class="gauge-label">AUDIO</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="right-panel">
+                <div class="time-widget">
+                  <div class="time-circle">
+                    <div class="time-value">${mt.t}</div>
+                  </div>
+                  <div class="time-info">
+                    <div class="time-info-label">Meeting</div>
+                    <div class="time-info-value">${meeting ? 'Scheduled' : 'None'}</div>
+                  </div>
+                </div>
+
+                <div class="meeting-info">
+                  <div class="meeting-row">
+                    ${svg.user}
+                    <span class="meeting-text">${meeting?.organizer?.name || 'No host'}</span>
+                  </div>
+                  <div class="meeting-row">
+                    ${svg.calendar}
+                    <span class="meeting-text ${meeting?'highlight':''}">${meeting ? 'Next Meeting' : 'No meetings'}</span>
+                  </div>
+                  <div class="meeting-row">
+                    ${mv ? svg.car : svg.nav}
+                    <span class="meeting-text">${mv ? 'Moving' : 'Parked'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bottom-bar">
+              <div class="home-indicator"></div>
+              ${ok ? `
+                ${m.v ? `<a href="${url}" target="_blank" class="bottom-btn primary">${svg.video} Join Video</a>` : ''}
+                <a href="${url}" target="_blank" class="bottom-btn ${m.v?'secondary':'primary'}">${svg.mic} ${m.v?'Audio Only':'Join Call'}</a>
+                <button class="bottom-btn mute">${svg.micOff}</button>
+              ` : `
+                <button class="bottom-btn secondary" disabled>No Meeting</button>
+              `}
+              <div class="bottom-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.onWidgetLoaded = async () => { meeting = await load(); draw(); };
+    window.onVssSync = d => {
+      if (d['Vehicle.Speed'] !== undefined) { speed = parseFloat(d['Vehicle.Speed'])||0; draw(); }
+      if (d['Vehicle.Body.Lights.Beam.Low.IsOn'] !== undefined) {
+        const on = d['Vehicle.Body.Lights.Beam.Low.IsOn'];
+        speed = (on===true||on==='true'||on===1) ? 60 : 0;
+        draw();
+      }
+    };
+    setInterval(() => { now = new Date(); draw(); }, 60000);
+    setTimeout(async () => { meeting = await load(); draw(); }, 300);
+  </script>
+</body>
+</html>

@@ -15,6 +15,7 @@ const pluginRoute = require('./plugin.route');
 const modelTemplateRoute = require('./modelTemplate.route');
 const dashboardTemplateRoute = require('./dashboardTemplate.route');
 const customApiSchemaRoute = require('./custom-api-schema.route');
+const teamsRoute = require('./teams.route');
 
 const router = express.Router();
 
@@ -27,11 +28,13 @@ router.use('/plugin', pluginRoute);
 router.use('/model-template', modelTemplateRoute);
 router.use('/dashboard-template', dashboardTemplateRoute);
 router.use('/custom-api-schema', customApiSchemaRoute);
+router.use('/teams', teamsRoute);
 // Backward/compat path to match docs and frontend
 router.use('/system/plugin', pluginRoute);
 router.use('/system/model-template', modelTemplateRoute);
 router.use('/system/dashboard-template', dashboardTemplateRoute);
 router.use('/system/site-management', siteManagementRoute);
 router.use('/system/custom-api-schema', customApiSchemaRoute);
+router.use('/system/teams', teamsRoute);
 
 module.exports = router;

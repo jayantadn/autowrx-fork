@@ -31,57 +31,51 @@
   <div class="font-bold text-sm bg-slate-900 px-2 py-1 flex items-center hover:underline">
     Terminal
     <div class="grow"></div>
-    <button id='btn-clear' className="text-sm">Clear
-    </button>
+    <button id='btn-clear' class="text-sm hover:text-gray-300">Clear</button>
   </div>
   <div class="grow overflow-y-auto text-white text-xs font-mono px-2 py-1">
-    <p id="container" class="whitespace-pre-line">
-    <p>
+    <pre id="container" class="whitespace-pre-wrap"></pre>
     <div id="bottom"></div>
   </div>
   <script>
-    let btnClear = null;
-    let container = null;
-    let bottom = null;
     let logs = ""
+    
+    // Initialize elements immediately
+    const container = document.getElementById('container')
+    const bottom = document.getElementById('bottom')
+    const btnClear = document.getElementById('btn-clear')
+    
     const appendLog = (log) => {
       if (!log) return;
       logs += log + (log.endsWith('\r\n') ? '' : '\r\n')
       if (container) {
         container.innerText = logs
-        bottom.scrollIntoView()
+        if (bottom) bottom.scrollIntoView()
       }
     }
+    
     const clearLog = () => {
       logs = ""
       if (container) {
         container.innerText = logs
-        bottom.scrollIntoView()
       }
     }
-    /*
-      window.onload = () => {
-        console.log("On window loaded")
-        btnClear = document.getElementById('btn-clear')
-        container = document.getElementById('container')
-        bottom = document.getElementById('bottom')
-        if(btnClear) {
-          btnClear.onclick = clearLog
-        }
-      }
-      */
+    
+    // Set up clear button
+    if (btnClear) {
+      btnClear.onclick = clearLog
+    }
 
+    // Called by syncer.js when widget options are received
     const onWidgetLoaded = (options) => {
-      //appendLog("On widget loaded")
-      btnClear = document.getElementById('btn-clear')
-      container = document.getElementById('container')
-      bottom = document.getElementById('bottom')
-      if (btnClear) {
-        btnClear.onclick = clearLog
-      }
+      // Widget is ready
+    }
+
+    // Handle app log messages from syncer.js
+    window.onAppLog = function(log) {
+      appendLog(log)
     }
   </script>
-  <script src="index.js"></script>
 </body>
 
 </html>

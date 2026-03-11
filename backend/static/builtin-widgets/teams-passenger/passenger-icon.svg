@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Background -->
+  <rect width="48" height="48" rx="10" fill="#1a1d24"/>
+  
+  <!-- Front seats (back view) -->
+  <rect x="6" y="20" width="10" height="18" rx="3" fill="#333"/>
+  <rect x="7" y="14" width="8" height="8" rx="2" fill="#444"/>
+  
+  <rect x="32" y="20" width="10" height="18" rx="3" fill="#333"/>
+  <rect x="33" y="14" width="8" height="8" rx="2" fill="#444"/>
+  
+  <!-- Rear screen -->
+  <rect x="16" y="8" width="16" height="12" rx="2" fill="#5865F2"/>
+  
+  <!-- Screen mount -->
+  <rect x="22" y="5" width="4" height="4" rx="1" fill="#666"/>
+  
+  <!-- Teams icon on screen -->
+  <rect x="19" y="11" width="6" height="4" rx="1" fill="#fff"/>
+  <circle cx="27" cy="12" r="2" fill="#fff" opacity="0.8"/>
+  
+  <!-- Full access indicator -->
+  <circle cx="24" cy="38" r="6" fill="#22c55e" opacity="0.2"/>
+  <path d="M21 38 L23 40 L27 36" stroke="#22c55e" stroke-width="2" fill="none"/>
+</svg>

@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teams - Driver View</title>
+  <script defer src="../syncer.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .car-interior {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: linear-gradient(180deg, #2a3040 0%, #1a1d24 40%, #12151a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Windshield reflection */
+    .windshield {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 35%;
+      background: linear-gradient(180deg, 
+        rgba(135,180,220,0.15) 0%,
+        rgba(100,140,180,0.08) 50%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Dashboard surface */
+    .dashboard-surface {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30%;
+      background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 30%, #1a1a1a 100%);
+      border-radius: 80% 80% 0 0 / 40% 40% 0 0;
+    }
+
+    /* Dashboard trim */
+    .dashboard-trim {
+      position: absolute;
+      bottom: 26%;
+      left: 8%;
+      right: 8%;
+      height: 6%;
+      background: linear-gradient(180deg, #888 0%, #666 50%, #444 100%);
+      border-radius: 50px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* Steering wheel */
+    .steering-wheel {
+      position: absolute;
+      left: -10%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28%;
+      aspect-ratio: 1;
+      z-index: 10;
+    }
+
+    .steering-outer {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #3a3a3a 0%, #252525 50%, #1a1a1a 100%);
+      border: 10px solid #1a1a1a;
+      box-shadow: 
+        inset 0 0 30px rgba(0,0,0,0.5),
+        0 8px 25px rgba(0,0,0,0.5),
+        inset 2px 2px 8px rgba(255,255,255,0.05);
+      position: relative;
+    }
+
+    .steering-inner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32%;
+      height: 32%;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%);
+      border: 3px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    .steering-logo {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .spoke {
+      position: absolute;
+      background: linear-gradient(90deg, #333 0%, #2a2a2a 50%, #333 100%);
+      border-radius: 4px;
+    }
+
+    .spoke-h { width: 22%; height: 10px; top: 50%; transform: translateY(-50%); }
+    .spoke-left { left: 20%; }
+    .spoke-right { right: 20%; }
+    .spoke-bottom { width: 10px; height: 18%; bottom: 20%; left: 50%; transform: translateX(-50%); }
+
+    /* Air vent */
+    .air-vent {
+      position: absolute;
+      right: 4%;
+      top: 45%;
+      transform: translateY(-50%);
+      width: 4%;
+      height: 30%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .vent-slot {
+      height: 2px;
+      background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+      border-radius: 1px;
+    }
+
+    /* Screen frame */
+    .screen-frame {
+      position: relative;
+      width: 70%;
+      height: 65%;
+      margin-left: 8%;
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 
+        0 0 0 4px #1a1a1a,
+        0 0 0 6px #333,
+        0 15px 50px rgba(0,0,0,0.6),
+        inset 0 0 40px rgba(0,0,0,0.4);
+    }
+
+    .screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(170deg, #1a1d24 0%, #12151a 60%, #0d1015 100%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: rgba(0,0,0,0.4);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px;
+    }
+
+    .status-title { font-weight: 500; opacity: 0.9; }
+    .status-time { margin-left: auto; opacity: 0.5; }
+    .status-badge {
+      margin-left: 10px;
+      padding: 2px 8px;
+      background: rgba(0,180,220,0.15);
+      border: 1px solid rgba(0,180,220,0.3);
+      border-radius: 10px;
+      font-size: 10px;
+      color: #00d4ff;
+    }
+
+    .demo-badge {
+      margin-left: 8px;
+      padding: 2px 6px;
+      background: rgba(255,180,0,0.15);
+      color: #ffb400;
+      border-radius: 4px;
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    /* Main content */
+    .content {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    /* Teams header */
+    .teams-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .teams-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(88,101,242,0.4);
+    }
+
+    .teams-logo svg { width: 20px; height: 20px; }
+
+    .teams-info { flex: 1; }
+    .teams-title { font-size: 14px; font-weight: 600; }
+    .teams-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+    /* Meeting card */
+    .meeting-card {
+      background: linear-gradient(135deg, rgba(88,101,242,0.1) 0%, rgba(88,101,242,0.03) 100%);
+      border: 1px solid rgba(88,101,242,0.15);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .meeting-subject {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .meeting-time {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .time-big { font-size: 28px; font-weight: 300; color: #5865F2; }
+    .time-suffix { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    .meeting-host {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 8px;
+    }
+
+    /* Vehicle status */
+    .vehicle-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.15);
+      border-radius: 8px;
+    }
+
+    .vehicle-status.moving {
+      background: rgba(251,146,60,0.08);
+      border-color: rgba(251,146,60,0.15);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px rgba(34,197,94,0.5);
+      animation: pulse 2s infinite;
+    }
+
+    .vehicle-status.moving .status-dot {
+      background: #fb923c;
+      box-shadow: 0 0 8px rgba(251,146,60,0.5);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-label { font-size: 11px; color: #22c55e; font-weight: 500; }
+    .vehicle-status.moving .status-label { color: #fb923c; }
+
+    /* Media indicators */
+    .media-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .media-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .media-item.on { color: #22c55e; }
+    .media-item svg { width: 16px; height: 16px; }
+
+    /* Action buttons */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, #5865F2 0%, #6D7AE5 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(88,101,242,0.35);
+    }
+
+    .action-btn.primary:hover {
+      box-shadow: 0 6px 25px rgba(88,101,242,0.5);
+      transform: translateY(-2px);
+    }
+
+    .action-btn.secondary {
+      background: rgba(34,197,94,0.1);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+
+    .action-btn.disabled {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.25);
+      cursor: not-allowed;
+    }
+
+    .action-btn svg { width: 18px; height: 18px; }
+
+    /* ========== IN CALL STATE ========== */
+    .call-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .video-preview {
+      flex: 1;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 100px;
+      overflow: hidden;
+    }
+
+    .video-preview::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 30% 40%, rgba(88,101,242,0.1) 0%, transparent 50%);
+    }
+
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .video-placeholder svg { width: 40px; height: 40px; opacity: 0.4; }
+    .video-placeholder span { font-size: 11px; }
+
+    .call-info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .call-timer {
+      padding: 6px 12px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .call-timer.recording { color: #ef4444; }
+    .call-timer.recording::before {
+      content: '●';
+      margin-right: 6px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .participant-count {
+      padding: 6px 12px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .participant-count svg { width: 14px; height: 14px; }
+
+    .call-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .control-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .control-btn svg { width: 22px; height: 22px; }
+
+    .control-btn.mute {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .control-btn.mute.active {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .control-btn.video {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .control-btn.video.off {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.4);
+    }
+
+    .control-btn.end {
+      background: #ef4444;
+      color: #fff;
+      width: 60px;
+      height: 50px;
+      border-radius: 25px;
+    }
+
+    .control-btn.end:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+
+    /* ========== JOINING STATE ========== */
+    .joining-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .joining-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(88,101,242,0.2);
+      border-top-color: #5865F2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .joining-text {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .cancel-btn {
+      padding: 10px 24px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cancel-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+
+    /* ========== ERROR STATE ========== */
+    .error-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .error-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(239,68,68,0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .error-icon svg { width: 30px; height: 30px; color: #ef4444; }
+
+    .error-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ef4444;
+    }
+
+    .error-message {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      max-width: 80%;
+    }
+
+    .error-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .error-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .error-btn.dismiss {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7);
+    }
+
+    .error-btn.retry {
+      background: #5865F2;
+      border: none;
+      color: #fff;
+    }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .empty-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-icon svg { width: 24px; height: 24px; opacity: 0.4; }
+    .empty-text { font-size: 13px; }
+
+    /* Loading */
+    .loading {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(88,101,242,0.2);
+      border-top-color: #5865F2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="car-interior" id="app">
+    <div class="screen-frame">
+      <div class="screen">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    
+    // State
+    let meeting = null;
+    let speed = 0;
+    let now = new Date();
+    let state = 'idle'; // idle, joining, in_call, error
+    let errorInfo = null;
+    let callStartTime = null;
+    let callTimer = null;
+    let callDuration = '00:00';
+    let isMuted = false;
+    let isVideoOn = true;
+    let participants = 3;
+
+    // SVG Icons
+    const svg = {
+      teams: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M19.5 9.5c1.38 0 2.5 1.12 2.5 2.5v5c0 1.38-1.12 2.5-2.5 2.5H18v-7.5c0-1.38-1.12-2.5-2.5-2.5h-2.5V7c0-1.38 1.12-2.5 2.5-2.5h1c1.38 0 2.5 1.12 2.5 2.5v.5c.28 0 .5.22.5.5v1.5z"/><circle cx="16" cy="3.5" r="2"/><rect x="3" y="9" width="12" height="10" rx="2"/><circle cx="9" cy="6" r="3"/></svg>`,
+      video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
+      videoOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7c0-1.1.9-2 2-2h2m6 0h3c1.1 0 2 .9 2 2v3l5-4v10"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`,
+      mic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>`,
+      micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .28-.02.56-.05.83"/><line x1="12" y1="19" x2="12" y2="23"/></svg>`,
+      phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+      phoneOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>`,
+      users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+      calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>`,
+      alertCircle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+      user: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+    };
+
+    // Error messages
+    const errors = [
+      { title: 'Failed to connect', message: 'Unable to establish connection to the meeting. Please check your network.' },
+      { title: 'Meeting not started', message: 'The meeting has not started yet. Please wait for the organizer.' },
+      { title: 'Link expired', message: 'This meeting link has expired or is no longer valid.' }
+    ];
+
+    // API calls
+    async function loadMeeting() {
+      try {
+        const r = await fetch(`${API}/v2/teams/meetings/next`, { credentials: 'include' });
+        return r.ok ? (await r.json()).meeting : null;
+      } catch { return null; }
+    }
+
+    // Helpers
+    function fmt(d) {
+      const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
+      return { t: `${h % 12 || 12}:${m}`, p: h >= 12 ? 'PM' : 'AM', full: `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}` };
+    }
+
+    function getMediaCapabilities() {
+      const isMoving = speed > 5;
+      return isMoving ? { video: false, audio: true } : { video: true, audio: true };
+    }
+
+    function formatDuration(ms) {
+      const s = Math.floor(ms / 1000);
+      const mins = Math.floor(s / 60);
+      const secs = s % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    // Actions
+    window.joinCall = function(withVideo) {
+      const media = getMediaCapabilities();
+      isVideoOn = withVideo && media.video;
+      isMuted = false;
+      state = 'joining';
+      draw();
+
+      // Simulate connection (3 seconds)
+      setTimeout(() => {
+        // 20% chance of error for demo purposes
+        if (Math.random() < 0.2) {
+          errorInfo = errors[Math.floor(Math.random() * errors.length)];
+          state = 'error';
+          draw();
+        } else {
+          // Success - open Teams URL and show in-call UI
+          const url = meeting?.onlineMeeting?.joinUrl;
+          if (url) window.open(url, '_blank');
+          
+          state = 'in_call';
+          callStartTime = Date.now();
+          participants = Math.floor(Math.random() * 5) + 2;
+          
+          callTimer = setInterval(() => {
+            callDuration = formatDuration(Date.now() - callStartTime);
+            draw();
+          }, 1000);
+          
+          draw();
+        }
+      }, 2500);
+    };
+
+    window.cancelJoin = function() {
+      state = 'idle';
+      draw();
+    };
+
+    window.toggleMute = function() {
+      isMuted = !isMuted;
+      draw();
+    };
+
+    window.toggleVideo = function() {
+      const media = getMediaCapabilities();
+      if (media.video) {
+        isVideoOn = !isVideoOn;
+        draw();
+      }
+    };
+
+    window.endCall = function() {
+      if (callTimer) clearInterval(callTimer);
+      callTimer = null;
+      callStartTime = null;
+      callDuration = '00:00';
+      state = 'idle';
+      draw();
+    };
+
+    window.dismissError = function() {
+      errorInfo = null;
+      state = 'idle';
+      draw();
+    };
+
+    window.retryJoin = function() {
+      errorInfo = null;
+      joinCall(isVideoOn);
+    };
+
+    // Main render
+    function draw() {
+      const el = document.getElementById('app');
+      const t = fmt(now);
+      const isMoving = speed > 5;
+      const media = getMediaCapabilities();
+      const mt = meeting?.start ? fmt(new Date(meeting.start)) : { t: '--:--', p: '' };
+      const hasUrl = !!meeting?.onlineMeeting?.joinUrl;
+
+      let contentHTML = '';
+
+      if (state === 'idle') {
+        if (meeting) {
+          contentHTML = `
+            <div class="teams-header">
+              <div class="teams-logo">${svg.teams}</div>
+              <div class="teams-info">
+                <div class="teams-title">Microsoft Teams</div>
+                <div class="teams-sub">Driver View</div>
+              </div>
+              ${meeting._isMock ? '<span class="demo-badge">DEMO</span>' : ''}
+            </div>
+
+            <div class="meeting-card">
+              <div class="meeting-subject">${meeting.subject || 'Team Meeting'}</div>
+              <div class="meeting-time">
+                <span class="time-big">${mt.t}</span>
+                <span class="time-suffix">${mt.p}</span>
+              </div>
+              ${meeting.organizer?.name ? `<div class="meeting-host">Organized by ${meeting.organizer.name}</div>` : ''}
+            </div>
+
+            <div class="vehicle-status ${isMoving ? 'moving' : ''}">
+              <div class="status-dot"></div>
+              <span class="status-label">${isMoving ? 'Driving • Video disabled for safety' : 'Parked • Full access available'}</span>
+            </div>
+
+            <div class="media-row">
+              <div class="media-item ${media.video ? 'on' : ''}">${media.video ? svg.video : svg.videoOff} Video ${media.video ? 'ON' : 'OFF'}</div>
+              <div class="media-item on">${svg.mic} Audio ON</div>
+            </div>
+
+            <div class="actions">
+              ${media.video && hasUrl ? `<button class="action-btn primary" data-action="join-video">${svg.video} Join with Video</button>` : ''}
+              ${hasUrl ? `<button class="action-btn ${media.video ? 'secondary' : 'primary'}" data-action="join-audio">${svg.mic} ${media.video ? 'Audio Only' : 'Join Audio'}</button>` : `<button class="action-btn disabled">No Meeting Link</button>`}
+            </div>
+          `;
+        } else {
+          contentHTML = `
+            <div class="teams-header">
+              <div class="teams-logo">${svg.teams}</div>
+              <div class="teams-info">
+                <div class="teams-title">Microsoft Teams</div>
+                <div class="teams-sub">Driver View</div>
+              </div>
+            </div>
+            <div class="empty-state">
+              <div class="empty-icon">${svg.calendar}</div>
+              <div class="empty-text">No upcoming meetings</div>
+            </div>
+          `;
+        }
+      } else if (state === 'joining') {
+        contentHTML = `
+          <div class="teams-header">
+            <div class="teams-logo">${svg.teams}</div>
+            <div class="teams-info">
+              <div class="teams-title">${meeting?.subject || 'Team Meeting'}</div>
+              <div class="teams-sub">Connecting...</div>
+            </div>
+          </div>
+          <div class="joining-container">
+            <div class="joining-spinner"></div>
+            <div class="joining-text">Connecting to meeting...</div>
+            <button class="cancel-btn" data-action="cancel">Cancel</button>
+          </div>
+        `;
+      } else if (state === 'in_call') {
+        contentHTML = `
+          <div class="call-container">
+            <div class="video-preview">
+              <div class="call-info">
+                <div class="call-timer">${callDuration}</div>
+                <div class="participant-count">${svg.users} ${participants}</div>
+              </div>
+              <div class="video-placeholder">
+                ${isVideoOn ? svg.video : svg.videoOff}
+                <span>${isVideoOn ? 'Camera Active' : 'Camera Off'}</span>
+              </div>
+            </div>
+            <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.6);margin:-4px 0">${meeting?.subject || 'Team Meeting'}</div>
+            <div class="call-controls">
+              <button class="control-btn mute ${isMuted ? 'active' : ''}" data-action="toggle-mute">${isMuted ? svg.micOff : svg.mic}</button>
+              <button class="control-btn video ${!isVideoOn ? 'off' : ''}" data-action="toggle-video" ${!media.video ? 'disabled style="opacity:0.3;cursor:not-allowed"' : ''}>${isVideoOn ? svg.video : svg.videoOff}</button>
+              <button class="control-btn end" data-action="end-call">${svg.phoneOff}</button>
+            </div>
+          </div>
+        `;
+      } else if (state === 'error') {
+        contentHTML = `
+          <div class="teams-header">
+            <div class="teams-logo">${svg.teams}</div>
+            <div class="teams-info">
+              <div class="teams-title">Microsoft Teams</div>
+              <div class="teams-sub">Connection Error</div>
+            </div>
+          </div>
+          <div class="error-container">
+            <div class="error-icon">${svg.alertCircle}</div>
+            <div class="error-title">${errorInfo?.title || 'Error'}</div>
+            <div class="error-message">${errorInfo?.message || 'An error occurred'}</div>
+            <div class="error-actions">
+              <button class="error-btn dismiss" data-action="dismiss">Dismiss</button>
+              <button class="error-btn retry" data-action="retry">Retry</button>
+            </div>
+          </div>
+        `;
+      }
+
+      el.innerHTML = `
+        <div class="windshield"></div>
+        <div class="dashboard-surface"></div>
+        <div class="dashboard-trim"></div>
+        <div class="air-vent">${Array(7).fill('<div class="vent-slot"></div>').join('')}</div>
+        
+        <div class="steering-wheel">
+          <div class="steering-outer">
+            <div class="spoke spoke-h spoke-left"></div>
+            <div class="spoke spoke-h spoke-right"></div>
+            <div class="spoke spoke-bottom"></div>
+            <div class="steering-inner">
+              <span class="steering-logo">BOSCH</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-frame">
+          <div class="screen">
+            <div class="status-bar">
+              <span class="status-title">Teams • Driver</span>
+              <span class="status-time">${t.full}</span>
+              <span class="status-badge">${Math.round(speed)} km/h</span>
+            </div>
+            <div class="content">
+              ${contentHTML}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Event handlers
+    window.onWidgetLoaded = async () => {
+      meeting = await loadMeeting();
+      draw();
+    };
+
+    window.onVssSync = (data) => {
+      let needsRedraw = false;
+
+      // Vehicle speed signals
+      if (data['Vehicle.Speed'] !== undefined) {
+        speed = parseFloat(data['Vehicle.Speed']) || 0;
+        needsRedraw = true;
+      }
+      if (data['Vehicle.Body.Lights.Beam.Low.IsOn'] !== undefined) {
+        const on = data['Vehicle.Body.Lights.Beam.Low.IsOn'];
+        speed = (on === true || on === 'true' || on === 1) ? 60 : 0;
+        needsRedraw = true;
+      }
+
+      if (needsRedraw) {
+        draw();
+      }
+    };
+
+    // Time update
+    setInterval(() => { now = new Date(); if (state === 'idle') draw(); }, 60000);
+
+    // Event delegation for button clicks
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      
+      const action = btn.getAttribute('data-action');
+      switch (action) {
+        case 'join-video':
+          joinCall(true);
+          break;
+        case 'join-audio':
+          joinCall(false);
+          break;
+        case 'cancel':
+          cancelJoin();
+          break;
+        case 'toggle-mute':
+          toggleMute();
+          break;
+        case 'toggle-video':
+          toggleVideo();
+          break;
+        case 'end-call':
+          endCall();
+          break;
+        case 'dismiss':
+          dismissError();
+          break;
+        case 'retry':
+          retryJoin();
+          break;
+      }
+    });
+
+    // Initial load
+    setTimeout(async () => {
+      meeting = await loadMeeting();
+      draw();
+    }, 300);
+  </script>
+</body>
+</html>

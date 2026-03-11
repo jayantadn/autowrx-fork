@@ -311,7 +311,7 @@
           options.apis.forEach((api, index) => {
             //if(index==0) return
             let apiValueObject = getApiValue(api);
-            let apiValue = apiValueObject?.value == undefined ? 'NaN' : apiValueObject?.value;
+            let apiValue = apiValueObject?.value !== undefined ? apiValueObject.value : 0;
             if (isFloat(apiValue)) {
               apiValue = Number(apiValue.toFixed(3))
             }

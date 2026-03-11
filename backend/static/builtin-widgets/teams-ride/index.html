@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teams Ride Mode - TVS Two-Wheeler</title>
+  <script defer src="../syncer.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .ride-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Motorcycle dashboard background */
+    .dashboard-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(ellipse at 50% 120%, rgba(88,101,242,0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 80%, rgba(34,197,94,0.05) 0%, transparent 40%),
+        linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%);
+      pointer-events: none;
+    }
+
+    /* Header with TVS branding */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.4);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+      z-index: 10;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tvs-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #e31837 0%, #c41230 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(227,24,55,0.3);
+    }
+
+    .brand-info h1 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .brand-info span {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .demo-badge {
+      padding: 4px 8px;
+      background: rgba(255,180,0,0.15);
+      color: #ffb400;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .time-display {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Speed & Mode Panel */
+    .speed-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      gap: 24px;
+      background: rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 10;
+    }
+
+    .speedometer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .speed-ring {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: conic-gradient(from 135deg, var(--mode-color, #22c55e) 0%, var(--mode-color, #22c55e) var(--speed-percent, 0%), rgba(255,255,255,0.1) var(--speed-percent, 0%), rgba(255,255,255,0.1) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .speed-ring::before {
+      content: '';
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #1a1a2e 0%, #0f0f1a 100%);
+    }
+
+    .speed-value {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .speed-number {
+      font-size: 28px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .speed-unit {
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ride-mode-info {
+      flex: 1;
+      max-width: 200px;
+    }
+
+    .ride-mode-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .mode-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--mode-color, #22c55e);
+      box-shadow: 0 0 10px var(--mode-color, #22c55e);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.9); }
+    }
+
+    .mode-name {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .mode-description {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+    }
+
+    .mode-capabilities {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .capability {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      font-size: 10px;
+    }
+
+    .capability.enabled { color: #22c55e; }
+    .capability.disabled { color: rgba(255,255,255,0.3); }
+    .capability svg { width: 12px; height: 12px; }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Meeting Card */
+    .meeting-card {
+      background: linear-gradient(135deg, rgba(88,101,242,0.15) 0%, rgba(88,101,242,0.05) 100%);
+      border: 1px solid rgba(88,101,242,0.2);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .meeting-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .teams-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(88,101,242,0.4);
+    }
+
+    .teams-icon svg { width: 24px; height: 24px; fill: #fff; }
+
+    .meeting-info { flex: 1; }
+    .meeting-subject {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .meeting-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .meeting-time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: rgba(88,101,242,0.2);
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #818cf8;
+    }
+
+    .meeting-time-badge.urgent {
+      background: rgba(239,68,68,0.2);
+      color: #f87171;
+    }
+
+    .meeting-organizer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .organizer-details { flex: 1; }
+    .organizer-name { font-size: 12px; font-weight: 500; }
+    .organizer-role { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+    /* Voice Command Hint */
+    .voice-hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(34,197,94,0.02) 100%);
+      border: 1px solid rgba(34,197,94,0.15);
+      border-radius: 12px;
+    }
+
+    .voice-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(34,197,94,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: voicePulse 2s infinite;
+    }
+
+    @keyframes voicePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+    }
+
+    .voice-icon svg { width: 18px; height: 18px; color: #22c55e; }
+
+    .voice-text { flex: 1; }
+    .voice-command {
+      font-size: 13px;
+      font-weight: 600;
+      color: #22c55e;
+    }
+
+    .voice-description {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+    }
+
+    /* Quick Responses */
+    .quick-responses {
+      margin-top: 12px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .quick-response-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .quick-response-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-response-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .qr-icon { font-size: 16px; }
+    .qr-text { font-size: 11px; color: rgba(255,255,255,0.7); }
+
+    /* Call Queue */
+    .call-queue {
+      margin-top: 16px;
+    }
+
+    .queue-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .queue-type {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .queue-type.missed {
+      background: rgba(239,68,68,0.15);
+      color: #ef4444;
+    }
+
+    .queue-type.voicemail {
+      background: rgba(168,85,247,0.15);
+      color: #a855f7;
+    }
+
+    .queue-type svg { width: 18px; height: 18px; }
+
+    .queue-info { flex: 1; }
+    .queue-caller { font-size: 12px; font-weight: 500; }
+    .queue-time { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+    .queue-action {
+      padding: 8px 12px;
+      background: rgba(88,101,242,0.15);
+      border: none;
+      border-radius: 8px;
+      color: #818cf8;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Incoming Call Overlay */
+    .incoming-call {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(34,197,94,0.95) 0%, rgba(22,163,74,0.98) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .incoming-call.hidden { display: none; }
+
+    .caller-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      animation: ringPulse 1.5s infinite;
+    }
+
+    @keyframes ringPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+      50% { box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+    }
+
+    .caller-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .caller-title {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 24px;
+    }
+
+    .call-actions {
+      display: flex;
+      gap: 40px;
+    }
+
+    .call-action-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .call-action-btn:hover { transform: scale(1.1); }
+
+    .call-action-btn.answer {
+      background: #fff;
+      color: #22c55e;
+    }
+
+    .call-action-btn.decline {
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+    }
+
+    .call-action-btn svg { width: 28px; height: 28px; }
+    .call-action-btn span { font-size: 10px; margin-top: 4px; }
+
+    .voice-answer-hint {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .voice-answer-hint p {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 8px;
+    }
+
+    .voice-commands-list {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .voice-cmd {
+      padding: 8px 14px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* Active Call State */
+    .active-call {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .active-call.hidden { display: none; }
+
+    .call-header {
+      padding: 16px;
+      text-align: center;
+      background: rgba(0,0,0,0.3);
+    }
+
+    .call-status {
+      font-size: 12px;
+      color: #22c55e;
+      margin-bottom: 4px;
+    }
+
+    .call-timer {
+      font-size: 32px;
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .call-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .active-caller-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .active-caller-name {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .active-caller-title {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .call-controls {
+      display: flex;
+      gap: 20px;
+      padding: 24px;
+      justify-content: center;
+    }
+
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .control-btn svg { width: 24px; height: 24px; }
+
+    .control-btn.mute {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .control-btn.mute.active {
+      background: #ef4444;
+    }
+
+    .control-btn.end {
+      background: #ef4444;
+      color: #fff;
+      width: 70px;
+    }
+
+    .control-btn.end:hover { background: #dc2626; }
+
+    /* Ride Summary */
+    .ride-summary {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .ride-summary.hidden { display: none; }
+
+    .summary-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .summary-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .summary-icon svg { width: 30px; height: 30px; color: #fff; }
+
+    .summary-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .summary-subtitle {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #818cf8;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .summary-actions {
+      margin-top: auto;
+    }
+
+    .summary-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .empty-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .empty-icon svg { width: 28px; height: 28px; opacity: 0.4; }
+    .empty-title { font-size: 14px; margin-bottom: 4px; }
+    .empty-text { font-size: 12px; }
+
+    /* Helmet audio indicator */
+    .helmet-audio {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 20px;
+      font-size: 11px;
+      z-index: 50;
+    }
+
+    .helmet-icon svg { width: 16px; height: 16px; color: #22c55e; }
+
+    .audio-wave {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 16px;
+    }
+
+    .audio-bar {
+      width: 3px;
+      background: #22c55e;
+      border-radius: 2px;
+      animation: audioWave 0.5s ease-in-out infinite;
+    }
+
+    .audio-bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+    .audio-bar:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+    .audio-bar:nth-child(3) { height: 10px; animation-delay: 0.2s; }
+    .audio-bar:nth-child(4) { height: 16px; animation-delay: 0.3s; }
+    .audio-bar:nth-child(5) { height: 6px; animation-delay: 0.4s; }
+
+    @keyframes audioWave {
+      0%, 100% { transform: scaleY(0.5); }
+      50% { transform: scaleY(1); }
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(88,101,242,0.2);
+      border-top-color: #5865F2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="ride-container" id="app">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+
+    // State
+    let speed = 0;
+    let now = new Date();
+    let meeting = null;
+    let callState = 'idle';
+    let incomingCall = null;
+    let activeCall = null;
+    let callStartTime = null;
+    let callDuration = '00:00';
+    let callTimer = null;
+    let isMuted = false;
+    let showSummary = false;
+
+    // Mock data
+    const mockCallers = [
+      { id: '1', name: 'Rajesh Kumar', title: 'Engineering Manager' },
+      { id: '2', name: 'Priya Sharma', title: 'Product Lead' },
+      { id: '3', name: 'Amit Patel', title: 'Team Lead' },
+    ];
+
+    const mockMeeting = {
+      id: 'm1',
+      subject: 'Sprint Planning - Connected Vehicles',
+      start: new Date(Date.now() + 15 * 60000).toISOString(),
+      organizer: mockCallers[1],
+      attendees: 5,
+      isUrgent: false,
+      _isMock: true
+    };
+
+    const quickResponses = [
+      { id: 'qr1', text: "I'm riding, call back soon", icon: '🏍️', voice: "I'm riding" },
+      { id: 'qr2', text: 'In traffic, 10 mins', icon: '🚦', voice: 'in traffic' },
+      { id: 'qr3', text: 'On my way, ETA 15 mins', icon: '📍', voice: "I'm coming" },
+      { id: 'qr4', text: 'Will join when stopped', icon: '📅', voice: 'joining soon' },
+    ];
+
+    const callQueue = [
+      { id: 'cq1', caller: mockCallers[0], type: 'missed', time: '10 min ago' },
+      { id: 'cq2', caller: mockCallers[2], type: 'voicemail', time: '25 min ago' },
+    ];
+
+    // SVG Icons
+    const svg = {
+      teams: `<svg viewBox="0 0 24 24"><path d="M19.5 9.5c1.38 0 2.5 1.12 2.5 2.5v5c0 1.38-1.12 2.5-2.5 2.5H18v-7.5c0-1.38-1.12-2.5-2.5-2.5h-2.5V7c0-1.38 1.12-2.5 2.5-2.5h1c1.38 0 2.5 1.12 2.5 2.5v.5c.28 0 .5.22.5.5v1.5z"/><circle cx="16" cy="3.5" r="2"/><rect x="3" y="9" width="12" height="10" rx="2"/><circle cx="9" cy="6" r="3"/></svg>`,
+      mic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>`,
+      micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .28-.02.56-.05.83"/></svg>`,
+      phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+      phoneOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>`,
+      calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>`,
+      helmet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12v5c0 1.66 1.34 3 3 3h2v-7H4.5C4.5 8.5 8 5 12 5s7.5 3.5 7.5 8H17v7h2c1.66 0 3-1.34 3-3v-5c0-5.52-4.48-10-10-10z"/></svg>`,
+      check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+      x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+      missedCall: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.5 16.5L22 22"/><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/></svg>`,
+      voicemail: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="11.5" r="4.5"/><circle cx="18.5" cy="11.5" r="4.5"/><line x1="5.5" y1="16" x2="18.5" y2="16"/></svg>`,
+      flag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`,
+    };
+
+    // Helpers
+    function getRideMode(spd) {
+      if (spd <= 0) return { name: 'STOPPED', color: '#22c55e', desc: 'Full access - Join meetings, calls available' };
+      if (spd <= 30) return { name: 'CITY', color: '#3b82f6', desc: 'Active mode - Answer calls, voice responses' };
+      if (spd <= 60) return { name: 'URBAN', color: '#f59e0b', desc: 'Limited - Audio only, quick responses' };
+      return { name: 'HIGHWAY', color: '#ef4444', desc: 'Safe mode - Emergency only, others queued' };
+    }
+
+    function getCapabilities(spd) {
+      const mode = getRideMode(spd);
+      return {
+        calls: mode.name !== 'HIGHWAY',
+        meetings: mode.name === 'STOPPED',
+        voice: true
+      };
+    }
+
+    function formatTime(d) {
+      const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
+      return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    function formatTimeUntil(iso) {
+      const diff = Math.max(0, new Date(iso) - now);
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return `${mins} min`;
+      return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+    }
+
+    function formatDuration(ms) {
+      const s = Math.floor(ms / 1000);
+      return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function getInitials(name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+
+    // Actions
+    window.simulateIncomingCall = function() {
+      const caller = mockCallers[Math.floor(Math.random() * mockCallers.length)];
+      incomingCall = { ...caller };
+      callState = 'incoming';
+      draw();
+    };
+
+    window.answerCall = function() {
+      activeCall = { ...incomingCall };
+      incomingCall = null;
+      callState = 'active';
+      callStartTime = Date.now();
+      callTimer = setInterval(() => {
+        callDuration = formatDuration(Date.now() - callStartTime);
+        draw();
+      }, 1000);
+      draw();
+    };
+
+    window.declineCall = function() {
+      incomingCall = null;
+      callState = 'idle';
+      draw();
+    };
+
+    window.toggleMute = function() {
+      isMuted = !isMuted;
+      draw();
+    };
+
+    window.endCall = function() {
+      if (callTimer) clearInterval(callTimer);
+      callTimer = null;
+      activeCall = null;
+      callState = 'idle';
+      callDuration = '00:00';
+      draw();
+    };
+
+    window.sendQuickResponse = function(text) {
+      console.log('Quick response sent:', text);
+      // In real app, this would send via Teams API
+    };
+
+    window.showRideSummary = function() {
+      showSummary = true;
+      draw();
+    };
+
+    window.dismissSummary = function() {
+      showSummary = false;
+      draw();
+    };
+
+    // Main render
+    function draw() {
+      const el = document.getElementById('app');
+      const mode = getRideMode(speed);
+      const caps = getCapabilities(speed);
+      const speedPercent = Math.min(100, (speed / 120) * 75);
+      const mt = mockMeeting.start ? formatTimeUntil(mockMeeting.start) : '--';
+
+      let html = `
+        <div class="dashboard-bg"></div>
+        
+        <!-- Header -->
+        <div class="header">
+          <div class="brand-section">
+            <div class="tvs-logo">TVS</div>
+            <div class="brand-info">
+              <h1>Teams Ride Mode</h1>
+              <span>SmartXonnect Audio</span>
+            </div>
+          </div>
+          <div class="header-right">
+            <span class="demo-badge">DEMO</span>
+            <span class="time-display">${formatTime(now)}</span>
+          </div>
+        </div>
+
+        <!-- Speed Panel -->
+        <div class="speed-panel" style="--mode-color: ${mode.color}; --speed-percent: ${speedPercent}%;">
+          <div class="speedometer">
+            <div class="speed-ring">
+              <div class="speed-value">
+                <span class="speed-number">${Math.round(speed)}</span>
+                <span class="speed-unit">km/h</span>
+              </div>
+            </div>
+          </div>
+          <div class="ride-mode-info">
+            <div class="ride-mode-label">
+              <div class="mode-dot"></div>
+              <span class="mode-name" style="color: ${mode.color}">${mode.name}</span>
+            </div>
+            <p class="mode-description">${mode.desc}</p>
+            <div class="mode-capabilities">
+              <div class="capability ${caps.calls ? 'enabled' : 'disabled'}">${svg.phone} Calls</div>
+              <div class="capability ${caps.meetings ? 'enabled' : 'disabled'}">${svg.calendar} Meet</div>
+              <div class="capability enabled">${svg.mic} Voice</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+          ${mockMeeting ? `
+            <!-- Meeting Card -->
+            <div class="meeting-card">
+              <div class="meeting-header">
+                <div class="teams-icon">${svg.teams}</div>
+                <div class="meeting-info">
+                  <div class="meeting-subject">${mockMeeting.subject}</div>
+                  <div class="meeting-meta">
+                    <span class="meeting-time-badge ${mockMeeting.isUrgent ? 'urgent' : ''}">
+                      ${mockMeeting.isUrgent ? '🔴 ' : ''}In ${mt}
+                    </span>
+                    <span>${mockMeeting.attendees} attendees</span>
+                  </div>
+                </div>
+              </div>
+              <div class="meeting-organizer">
+                <div class="avatar">${getInitials(mockMeeting.organizer.name)}</div>
+                <div class="organizer-details">
+                  <div class="organizer-name">${mockMeeting.organizer.name}</div>
+                  <div class="organizer-role">${mockMeeting.organizer.title}</div>
+                </div>
+              </div>
+              <div class="voice-hint">
+                <div class="voice-icon">${svg.mic}</div>
+                <div class="voice-text">
+                  <div class="voice-command">"Hey TVS, join meeting"</div>
+                  <div class="voice-description">${caps.meetings ? 'Voice command ready' : 'Stop to join meeting'}</div>
+                </div>
+              </div>
+            </div>
+          ` : `
+            <div class="empty-state">
+              <div class="empty-icon">${svg.calendar}</div>
+              <div class="empty-title">No upcoming meetings</div>
+              <div class="empty-text">You're all clear for your ride</div>
+            </div>
+          `}
+
+          <!-- Quick Responses -->
+          <div class="quick-responses">
+            <div class="section-title">Quick Voice Responses</div>
+            <div class="quick-response-grid">
+              ${quickResponses.map(qr => `
+                <button class="quick-response-btn" onclick="sendQuickResponse('${qr.text}')">
+                  <span class="qr-icon">${qr.icon}</span>
+                  <span class="qr-text">${qr.text}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Call Queue -->
+          ${callQueue.length > 0 ? `
+            <div class="call-queue">
+              <div class="section-title">While You Were Riding</div>
+              ${callQueue.map(item => `
+                <div class="queue-item">
+                  <div class="queue-type ${item.type}">
+                    ${item.type === 'missed' ? svg.missedCall : svg.voicemail}
+                  </div>
+                  <div class="queue-info">
+                    <div class="queue-caller">${item.caller.name}</div>
+                    <div class="queue-time">${item.time}</div>
+                  </div>
+                  <button class="queue-action">Call Back</button>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <!-- Demo: Simulate Call Button -->
+          <div style="margin-top: 20px; text-align: center;">
+            <button onclick="simulateIncomingCall()" style="padding: 12px 24px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;">
+              📞 Simulate Incoming Call
+            </button>
+          </div>
+        </div>
+
+        <!-- Helmet Audio Indicator -->
+        <div class="helmet-audio">
+          <div class="helmet-icon">${svg.helmet}</div>
+          <span>Helmet Connected</span>
+          <div class="audio-wave">
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+          </div>
+        </div>
+      `;
+
+      // Incoming call overlay
+      if (callState === 'incoming' && incomingCall) {
+        html += `
+          <div class="incoming-call">
+            <div class="caller-avatar">${getInitials(incomingCall.name)}</div>
+            <div class="caller-name">${incomingCall.name}</div>
+            <div class="caller-title">${incomingCall.title || 'Teams Call'}</div>
+            <div class="call-actions">
+              <button class="call-action-btn decline" onclick="declineCall()">
+                ${svg.phoneOff}
+                <span>Decline</span>
+              </button>
+              <button class="call-action-btn answer" onclick="answerCall()">
+                ${svg.phone}
+                <span>Answer</span>
+              </button>
+            </div>
+            <div class="voice-answer-hint">
+              <p>Or use voice commands:</p>
+              <div class="voice-commands-list">
+                <span class="voice-cmd">"Hey TVS, answer"</span>
+                <span class="voice-cmd">"Hey TVS, decline"</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Active call state
+      if (callState === 'active' && activeCall) {
+        html += `
+          <div class="active-call">
+            <div class="call-header">
+              <div class="call-status">● Call in progress</div>
+              <div class="call-timer">${callDuration}</div>
+            </div>
+            <div class="call-body">
+              <div class="active-caller-avatar">${getInitials(activeCall.name)}</div>
+              <div class="active-caller-name">${activeCall.name}</div>
+              <div class="active-caller-title">${activeCall.title || ''}</div>
+            </div>
+            <div class="call-controls">
+              <button class="control-btn mute ${isMuted ? 'active' : ''}" onclick="toggleMute()">
+                ${isMuted ? svg.micOff : svg.mic}
+              </button>
+              <button class="control-btn end" onclick="endCall()">
+                ${svg.phoneOff}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // Ride summary
+      if (showSummary) {
+        html += `
+          <div class="ride-summary">
+            <div class="summary-header">
+              <div class="summary-icon">${svg.flag}</div>
+              <div class="summary-title">Ride Complete</div>
+              <div class="summary-subtitle">Here's your Teams activity summary</div>
+            </div>
+            <div class="summary-stats">
+              <div class="stat-card">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Total Calls</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">2</div>
+                <div class="stat-label">Missed</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Meetings Joined</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">12m</div>
+                <div class="stat-label">Talk Time</div>
+              </div>
+            </div>
+            <div class="summary-actions">
+              <button class="summary-btn" onclick="dismissSummary()">Continue</button>
+            </div>
+          </div>
+        `;
+      }
+
+      el.innerHTML = html;
+    }
+
+    // Event handlers
+    window.onWidgetLoaded = () => {
+      meeting = mockMeeting;
+      draw();
+    };
+
+    window.onVssSync = (data) => {
+      if (data['Vehicle.Speed'] !== undefined) {
+        speed = parseFloat(data['Vehicle.Speed']) || 0;
+        draw();
+      }
+    };
+
+    // Time update
+    setInterval(() => { now = new Date(); if (callState === 'idle') draw(); }, 60000);
+
+    // Initial draw
+    setTimeout(() => draw(), 300);
+  </script>
+</body>
+</html>

@@ -46,6 +46,7 @@ import DaWidgetList from '@/components/molecules/widgets/DaWidgetList'
 import useListMarketplaceWidgets from '@/hooks/useListMarketplaceWidgets'
 import { Input } from '@/components/atoms/input'
 import ModelApiList from '@/components/organisms/ModelApiList'
+import useCurrentBrand from '@/hooks/useCurrentBrand'
 
 interface DaDashboardWidgetEditorProps {
   widgetEditorPopupState: [
@@ -381,6 +382,7 @@ const DaWidgetLibrary: FC<DaWidgetLibraryProp> = ({
   )
   const { data: user } = useSelfProfileQuery()
   const { data: marketWidgets } = useListMarketplaceWidgets()
+  const { data: currentBrand } = useCurrentBrand()
   const modalRef = useRef<HTMLDivElement>(null)
   const buildinWidgets = BUILT_IN_WIDGETS
   let [renderWidgets, setRenderWidgets] = useState<any[]>([])
@@ -434,6 +436,17 @@ const DaWidgetLibrary: FC<DaWidgetLibraryProp> = ({
       if (activeTab === 'market') {
         options['iconURL'] = activeWidget.icon
       }
+      
+      // Apply brand-specific images for Hood Widget
+      if (activeWidget.id === 'Hood-Widget' && currentBrand) {
+        if (currentBrand.hood_closed_image) {
+          options.closedImage = currentBrand.hood_closed_image
+        }
+        if (currentBrand.hood_open_image) {
+          options.openImage = currentBrand.hood_open_image
+        }
+      }
+      
       newWidgetConfig = {
         plugin: activeWidget.plugin,
         widget: activeWidget.widget,
@@ -512,9 +525,14 @@ const DaWidgetLibrary: FC<DaWidgetLibraryProp> = ({
     }
   }, [targetSelectionCells])
 
+  // Reset activeWidget only when tab changes
   useEffect(() => {
     setActiveWidget(activeTab === 'genAI' ? {} : null)
     setIsWidgetGenAI(activeTab === 'genAI')
+  }, [activeTab])
+
+  // Update render widgets when tab or widget data changes
+  useEffect(() => {
     let widgets = []
 
     if (activeTab === 'builtin') {

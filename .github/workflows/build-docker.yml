@@ -24,8 +24,8 @@ on:
       - '**'
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository }}
+  REGISTRY: ${{ secrets.ACR_LOGIN_SERVER }}
+  IMAGE_NAME: autowrx
 
 jobs:
   test-build:
@@ -51,18 +51,18 @@ jobs:
           driver-opts: |
             network=host
 
-      - name: Log in to Container Registry
+      - name: Log in to Azure Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/autowrx
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -126,13 +126,13 @@ jobs:
           if [[ "${{ steps.should_push.outputs.push }}" == "true" ]]; then
             if [[ -n "${{ github.event.inputs.custom_tag }}" ]]; then
               echo "Custom tagged image is available:"
-              echo "  ghcr.io/${{ env.IMAGE_PREFIX }}/autowrx:${{ github.event.inputs.custom_tag }}"
+              echo "  ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.custom_tag }}"
               echo ""
               echo "You can now use this image in production by updating .env.stack:"
               echo "IMAGE_TAG=${{ github.event.inputs.custom_tag }}"
             elif [[ "${{ github.ref_type }}" == "tag" ]]; then
               echo "Tagged image is available:"
-              echo "  ghcr.io/${{ env.IMAGE_PREFIX }}/autowrx:${{ github.ref_name }}"
+              echo "  ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
               echo ""
               echo "You can now use this image in production by updating .env.stack:"
               echo "IMAGE_TAG=${{ github.ref_name }}"

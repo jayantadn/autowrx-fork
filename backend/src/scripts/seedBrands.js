@@ -51,6 +51,7 @@ async function createOrUpdateBaseModel(brand, userId) {
 
   if (baseModel) {
     baseModel.is_base_model = true;
+    baseModel.model_home_image_file = brand.logo_url;
     await baseModel.save();
     return;
   }
@@ -64,6 +65,7 @@ async function createOrUpdateBaseModel(brand, userId) {
   if (baseModel) {
     baseModel.is_base_model = true;
     baseModel.vehicle_category = BASE_MODEL.vehicle_category;
+    baseModel.model_home_image_file = brand.logo_url;
     await baseModel.save();
     return;
   }
@@ -73,6 +75,7 @@ async function createOrUpdateBaseModel(brand, userId) {
     main_api: 'Vehicle',
     api_version: 'v4.1',
     vehicle_category: BASE_MODEL.vehicle_category,
+    model_home_image_file: brand.logo_url,
     visibility: visibilityTypes.PUBLIC,
     state: 'released',
     brand_id: brand._id,
@@ -189,6 +192,21 @@ async function seedBrands() {
       
       if (existingModel) {
         console.log(`  Model Tata ${modelDef.name} already exists with brand`);
+        // Update Nexon image even when the model already exists.
+        if (modelDef.name === 'Nexon') {
+          existingModel.model_home_image_file = '/imgs/brands/Tata-Nexon.png';
+          await existingModel.save();
+        }
+        // Update Harrier image even when the model already exists.
+        if (modelDef.name === 'Harrier') {
+          existingModel.model_home_image_file = '/imgs/brands/Tata-Harrier.png';
+          await existingModel.save();
+        }
+        // Update Curvv image even when the model already exists.
+        if (modelDef.name === 'Curvv') {
+          existingModel.model_home_image_file = '/imgs/brands/Tata-Curvv.png';
+          await existingModel.save();
+        }
         continue;
       }
       
@@ -209,6 +227,14 @@ async function seedBrands() {
           main_api: 'Vehicle',
           api_version: 'v4.1',
           vehicle_category: modelDef.vehicle_category,
+          model_home_image_file:
+            modelDef.name === 'Nexon'
+              ? '/imgs/brands/Tata-Nexon.png'
+              : modelDef.name === 'Harrier'
+                ? '/imgs/brands/Tata-Harrier.png'
+                : modelDef.name === 'Curvv'
+                  ? '/imgs/brands/Tata-Curvv.png'
+                : undefined,
           visibility: visibilityTypes.PUBLIC,
           state: 'released',
           brand_id: tataBrand._id,
@@ -232,6 +258,16 @@ async function seedBrands() {
       
       if (existingModel) {
         console.log(`  Model Mahindra ${modelDef.name} already exists with brand`);
+        // Update XUV700 image even when the model already exists.
+        if (modelDef.name === 'XUV700') {
+          existingModel.model_home_image_file = '/imgs/brands/Mahindra-XUV700.png';
+          await existingModel.save();
+        }
+        // Update Thar image even when the model already exists.
+        if (modelDef.name === 'Thar') {
+          existingModel.model_home_image_file = '/imgs/brands/Mahindra-Thar.png';
+          await existingModel.save();
+        }
         continue;
       }
       
@@ -252,6 +288,12 @@ async function seedBrands() {
           main_api: 'Vehicle',
           api_version: 'v4.1',
           vehicle_category: modelDef.vehicle_category,
+          model_home_image_file:
+            modelDef.name === 'XUV700'
+              ? '/imgs/brands/Mahindra-XUV700.png'
+              : modelDef.name === 'Thar'
+                ? '/imgs/brands/Mahindra-Thar.png'
+                : undefined,
           visibility: visibilityTypes.PUBLIC,
           state: 'released',
           brand_id: mahindraBrand._id,
@@ -275,6 +317,16 @@ async function seedBrands() {
       
       if (existingModel) {
         console.log(`  Model TVS ${modelDef.name} already exists with brand`);
+        // Update Apache image even when the model already exists.
+        if (modelDef.name === 'Apache') {
+          existingModel.model_home_image_file = '/imgs/brands/TVS-Apache.png';
+          await existingModel.save();
+        }
+        // Update Jupiter image even when the model already exists.
+        if (modelDef.name === 'Jupiter') {
+          existingModel.model_home_image_file = '/imgs/brands/TVS-Jupiter.png';
+          await existingModel.save();
+        }
         continue;
       }
       
@@ -295,6 +347,12 @@ async function seedBrands() {
           main_api: 'Vehicle',
           api_version: 'v4.1',
           vehicle_category: modelDef.vehicle_category,
+          model_home_image_file:
+            modelDef.name === 'Apache'
+              ? '/imgs/brands/TVS-Apache.png'
+              : modelDef.name === 'Jupiter'
+                ? '/imgs/brands/TVS-Jupiter.png'
+                : undefined,
           visibility: visibilityTypes.PUBLIC,
           state: 'released',
           brand_id: tvsBrand._id,
@@ -318,6 +376,18 @@ async function seedBrands() {
       
       if (existingModel) {
         console.log(`  Model Toyota ${modelDef.name} already exists with brand`);
+        if (modelDef.name === 'Hilux') {
+          existingModel.model_home_image_file = '/imgs/brands/Toyota-Hilux.png';
+          await existingModel.save();
+        }
+        if (modelDef.name === 'Innova') {
+          existingModel.model_home_image_file = '/imgs/brands/Toyota-Innova.png';
+          await existingModel.save();
+        }
+        if (modelDef.name === 'Fortuner') {
+          existingModel.model_home_image_file = '/imgs/brands/Toyota-Fortuner.png';
+          await existingModel.save();
+        }
         continue;
       }
       
@@ -338,6 +408,14 @@ async function seedBrands() {
           main_api: 'Vehicle',
           api_version: 'v4.1',
           vehicle_category: modelDef.vehicle_category,
+          model_home_image_file:
+            modelDef.name === 'Hilux'
+              ? '/imgs/brands/Toyota-Hilux.png'
+              : modelDef.name === 'Innova'
+                ? '/imgs/brands/Toyota-Innova.png'
+                : modelDef.name === 'Fortuner'
+                  ? '/imgs/brands/Toyota-Fortuner.png'
+                  : undefined,
           visibility: visibilityTypes.PUBLIC,
           state: 'released',
           brand_id: toyotaBrand._id,

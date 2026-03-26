@@ -11,11 +11,12 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 
+const shouldOpenVisualizer = process.env.CI !== 'true'
 export default defineConfig({
   plugins: [
     react(),
     visualizer({
-      open: true,
+      open: shouldOpenVisualizer,
     }),
   ],
   build: {

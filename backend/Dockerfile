@@ -1,12 +1,19 @@
 # Stage 1: Build Frontend using build-frontend.sh script
 # Use BUILDPLATFORM for frontend builder since it produces architecture-agnostic static files
-FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:24.12.0-alpine AS frontend-builder
 WORKDIR /app
+
+# Disable Husky git hooks and browser-opening behavior during Docker build
+ENV HUSKY=0 \
+	CI=true
 
 # Install bash (needed for build script)
 # Use --no-scripts to avoid QEMU emulation issues with post-install scripts
 # The bash binary will still work even without post-install scripts
 RUN apk add --no-cache --no-scripts bash
+
+# Enable corepack and install yarn
+RUN corepack enable && corepack prepare yarn@1.22.19 --activate
 
 # Create backend/static directory structure for build output
 # This ensures backend/static exists before building frontend
@@ -23,10 +30,14 @@ COPY build-frontend.sh ./
 RUN chmod +x build-frontend.sh && ./build-frontend.sh
 
 # Stage 2: Build Backend (only backend code, no frontend source)
-FROM node:20-alpine
+FROM node:24.12.0-alpine
+
+ENV HUSKY=0
 
 # Install Python and build tools needed for native dependencies (bufferutil, utf-8-validate)
 RUN apk add --no-cache python3 make g++
+
+RUN corepack enable && corepack prepare yarn@1.22.19 --activate
 
 RUN mkdir -p /usr/src/playground-be && chown -R node:node /usr/src/playground-be
 
@@ -55,4 +66,3 @@ EXPOSE 3200
 ENV PORT=3200
 
 CMD ["yarn", "prod:test"]
-

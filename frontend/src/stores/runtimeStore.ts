@@ -11,8 +11,8 @@ import { immer } from 'zustand/middleware/immer'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 type RuntimeState = {
-  apisValue?: {}
-  traceVars?: {}
+  apisValue?: Record<string, any>
+  traceVars?: Record<string, any>
   appLog?: string
 }
 
@@ -47,4 +47,3 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export default useRuntimeStore
-

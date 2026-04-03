@@ -66,6 +66,13 @@ serverAxios.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
+    const currentToken = useAuthStore.getState().access?.token
+
+    // Immediately reject 401 if no token is available (unauthenticated user) to avoid retry storms
+    if (error.response?.status === 401 && !currentToken) {
+      return Promise.reject(error)
+    }
+
     // If error is 401 and we haven't already tried to refresh
     // Skip refresh for auth endpoints to avoid infinite loops
     if (

@@ -13,6 +13,7 @@ import { Spinner } from '@/components/atoms/spinner'
 import { registerService } from '@/services/auth.service'
 import { isAxiosError } from 'axios'
 import { useState } from 'react'
+import useAuthStore from '@/stores/authStore.ts'
 import { usePolicy } from '@/hooks/useInstanceCfg'
 import { addLog } from '@/services/log.service'
 
@@ -42,6 +43,10 @@ const FormRegister = ({ setAuthType }: FormRegisterProps) => {
     return errors
   }
 
+  const setAccess = useAuthStore((state) => state.setAccess)
+  const setUser = useAuthStore((state) => state.setUser)
+  const setOpenLoginDialog = useAuthStore((state) => state.setOpenLoginDialog)
+
   const register = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
@@ -61,10 +66,11 @@ const FormRegister = ({ setAuthType }: FormRegisterProps) => {
       }
 
       // Register
-      await registerService(name, email, password)
+      const result = await registerService(name, email, password)
+      setAccess(result.tokens.access)
+      setUser(result.user, result.tokens.access)
+      setOpenLoginDialog(false)
       setError('')
-      // eslint-disable-next-line no-self-assign
-      window.location.href = window.location.href
     } catch (error) {
       if (isAxiosError(error)) {
         setError(error.response?.data.message || 'Something went wrong')

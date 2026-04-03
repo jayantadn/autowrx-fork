@@ -9,9 +9,13 @@
 import { AuthToken } from '@/types/token.type'
 import { serverAxios } from './base'
 
-export const loginService = async (email: string, password: string) => {
-  return (await serverAxios.post<AuthToken>('/auth/login', { email, password }))
-    .data
+type AuthResponse = {
+  user: any
+  tokens: AuthToken
+}
+
+export const loginService = async (email: string, password: string): Promise<AuthResponse> => {
+  return (await serverAxios.post<AuthResponse>('/auth/login', { email, password })).data
 }
 
 export const registerService = async (
@@ -20,7 +24,7 @@ export const registerService = async (
   password: string,
   imageFileUrl?: string,
   provider: string = 'Email',
-): Promise<AuthToken> => {
+): Promise<AuthResponse> => {
   const registrationData: any = {
     name,
     email,
@@ -32,7 +36,7 @@ export const registerService = async (
     registrationData.image_file = imageFileUrl
   }
 
-  return (await serverAxios.post<AuthToken>('/auth/register', registrationData))
+  return (await serverAxios.post<AuthResponse>('/auth/register', registrationData))
     .data
 }
 

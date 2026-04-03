@@ -19,6 +19,7 @@ import SSOHandler from '../SSOHandler'
 import config from '@/configs/config'
 import { useAuthConfigs } from '@/hooks/useAuthConfigs'
 import { useSSOProviders } from '@/hooks/useSSOProviders'
+import useAuthStore from '@/stores/authStore.ts'
 
 interface FormSignInProps {
   setAuthType: (type: 'sign-in' | 'register' | 'forgot') => void
@@ -31,6 +32,10 @@ const FormSignIn = ({ setAuthType }: FormSignInProps) => {
   const { authConfigs } = useAuthConfigs()
   const { providers: ssoProviders } = useSSOProviders()
 
+  const setAccess = useAuthStore((state) => state.setAccess)
+  const setUser = useAuthStore((state) => state.setUser)
+  const setOpenLoginDialog = useAuthStore((state) => state.setOpenLoginDialog)
+
   const signIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
@@ -39,13 +44,18 @@ const FormSignIn = ({ setAuthType }: FormSignInProps) => {
         e.currentTarget.email.value,
         e.currentTarget.password.value,
       ]
-      await loginService(email, password)
-      window.location.href = window.location.href
+
+      const result = await loginService(email, password)
+      setAccess(result.tokens.access)
+      setUser(result.user, result.tokens.access)
+      setOpenLoginDialog(false)
+      setError('')
     } catch (error) {
       if (isAxiosError(error)) {
         setError(error.response?.data.message || 'Something went wrong')
         return
       }
+      setError('Something went wrong')
     } finally {
       setLoading(false)
     }

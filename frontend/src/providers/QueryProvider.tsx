@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { isAxiosError } from 'axios'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import useAuthStore from '@/stores/authStore'
 import { AuthToken } from '@/types/token.type'
 import { serverAxios } from '@/services/base'
@@ -79,6 +79,21 @@ const QueryProvider = ({ children }: QueryProviderProps) => {
       refreshingToken.current = false
     }
   }, [logOut, setAccess])
+
+  useEffect(() => {
+    const cookieName = 'token'
+    const hasJwtCookie = document.cookie
+      .split(';')
+      .some((cookie) => cookie.trim().startsWith(`${cookieName}=`))
+
+    if (!hasJwtCookie) {
+      return
+    }
+
+    refreshAuthToken().catch(() => {
+      // no-op: token might be expired/invalid
+    })
+  }, [refreshAuthToken])
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -8,12 +8,19 @@
 
 import { checkPermissionService } from '@/services/permission.service.ts'
 import { useQuery } from '@tanstack/react-query'
+import useAuthStore from '@/stores/authStore.ts'
 
 const usePermissionHook = (...params: [string, string?][]) => {
+  const accessToken = useAuthStore((state) => state.access?.token)
+
   const { data } = useQuery({
     queryKey: ['permissions', params],
     queryFn: () => checkPermissionService(params),
+    enabled: Boolean(accessToken),
+    retry: false,
+    refetchOnWindowFocus: false,
   })
+
   return data || Array(params.length).fill(false)
 }
 

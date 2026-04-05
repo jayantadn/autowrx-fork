@@ -13,19 +13,40 @@ const logger = require('./config/logger');
 const initializeRoles = require('./scripts/initializeRoles');
 const { init } = require('./config/socket');
 const { setupScheduledCheck, assignAdmins, convertLogsCap } = require('./scripts');
+const { seedBrands, seedModelFeatures } = require('./scripts');
 
 // console.log('>>>>>>>>>>>>> mongo_url', config.mongoose.url);
 // console.log('>>>>>>>>>>>>> config', config);
 
+async function ensureDataSeeded() {
+  try {
+    const brandCount = await require('./models').Brand.countDocuments();
+    if (brandCount === 0) {
+      logger.info('No brands found, seeding initial brands and model features...');
+      await seedBrands();
+      await seedModelFeatures();
+      logger.info('Initial seeding complete.');
+    } else {
+      logger.info(`Existing brands found (${brandCount}), skipping seed.`);
+    }
+  } catch (err) {
+    logger.error('Error running initial data seed:', err);
+    throw err;
+  }
+}
+
 let server;
-mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
+mongoose.connect(config.mongoose.url, config.mongoose.options).then(async () => {
   logger.info('Connected to MongoDB ');
   logger.info(`🚀 Backend running in ${config.env.toUpperCase()} mode`);
   logger.info(`📊 CORS Origins: ${config.cors.origins ? 'Custom function' : 'Default'}`);
   logger.info(`🍪 Cookie Config: secure=${config.jwt.cookie.options.secure}, sameSite=${config.jwt.cookie.options.sameSite}, httpOnly=${config.jwt.cookie.options.httpOnly}`);
 
   convertLogsCap();
-  initializeRoles().then(() => assignAdmins());
+  await initializeRoles();
+  await assignAdmins();
+  await ensureDataSeeded();
+
   // config.port is loaded from the PORT environment variable, defaulting to 8080 (see backend/src/config/config.js).
   server = app.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);

@@ -369,4 +369,9 @@ async function seedModelFeatures() {
   }
 }
 
-seedModelFeatures();
+if (require.main === module) {
+  seedModelFeatures();
+}
+
+module.exports = seedModelFeatures;
+

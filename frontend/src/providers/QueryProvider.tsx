@@ -81,17 +81,10 @@ const QueryProvider = ({ children }: QueryProviderProps) => {
   }, [logOut, setAccess])
 
   useEffect(() => {
-    const cookieName = 'token'
-    const hasJwtCookie = document.cookie
-      .split(';')
-      .some((cookie) => cookie.trim().startsWith(`${cookieName}=`))
-
-    if (!hasJwtCookie) {
-      return
-    }
-
-    refreshAuthToken().catch(() => {
-      // no-op: token might be expired/invalid
+    refreshAuthToken().catch((error) => {
+      // If no refresh cookie exists, this will fail silently.
+      // We do this on mount because the refresh token is HttpOnly and cannot be detected from JS.
+      console.debug('Refresh token check on mount failed:', error?.message || error)
     })
   }, [refreshAuthToken])
 

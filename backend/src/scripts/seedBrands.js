@@ -436,4 +436,9 @@ async function seedBrands() {
   }
 }
 
-seedBrands();
+if (require.main === module) {
+  seedBrands();
+}
+
+module.exports = seedBrands;
+

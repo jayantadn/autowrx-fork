@@ -20,17 +20,13 @@ const { seedBrands, seedModelFeatures } = require('./scripts');
 
 async function ensureDataSeeded() {
   try {
-    const brandCount = await require('./models').Brand.countDocuments();
-    if (brandCount === 0) {
-      logger.info('No brands found, seeding initial brands and model features...');
-      await seedBrands();
-      await seedModelFeatures();
-      logger.info('Initial seeding complete.');
-    } else {
-      logger.info(`Existing brands found (${brandCount}), skipping seed.`);
-    }
+    // Always run seeding to ensure all brands, models, and features are present
+    logger.info('Running data seeding to ensure all brands and models are available...');
+    await seedBrands();
+    await seedModelFeatures();
+    logger.info('Data seeding complete.');
   } catch (err) {
-    logger.error('Error running initial data seed:', err);
+    logger.error('Error running data seed:', err);
     throw err;
   }
 }

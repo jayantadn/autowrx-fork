@@ -8,10 +8,12 @@
 
 import { url } from 'inspector'
 
+const serverBaseUrl = import.meta.env.VITE_SERVER_BASE_URL || ''
+const isLocalDevBackend = import.meta.env.DEV && /https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(serverBaseUrl)
+
 const config: any = {
   instance: 'autowrx',
-  serverBaseUrl:
-    import.meta.env.VITE_SERVER_BASE_URL || '',
+  serverBaseUrl: isLocalDevBackend ? '' : serverBaseUrl,
   serverVersion: import.meta.env.VITE_SERVER_VERSION || 'v2',
   logBaseUrl: '',
   // cacheBaseUrl: '',

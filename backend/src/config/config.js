@@ -95,7 +95,7 @@ const config = {
       options: {
         secure: envVars.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'None',
+        sameSite: envVars.NODE_ENV === 'production' ? 'None' : 'Lax',
         domain: envVars.NODE_ENV === 'production' ? envVars.JWT_COOKIE_DOMAIN : 'localhost',
       },
     },

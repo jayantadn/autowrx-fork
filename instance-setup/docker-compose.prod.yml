@@ -18,7 +18,7 @@ services:
     build:
       context: ..
       dockerfile: ./backend/Dockerfile
-    image: autowrx.azurecr.io/bgsw/autowrx:0.0.4
+    image: autowrx.azurecr.io/bgsw/autowrx:0.0.5
     ports:
       - "${FRONTEND_PORT:-3200}:3200"
     environment:

@@ -86,8 +86,8 @@ async function createOrUpdateBaseModel(brand, userId) {
 
 async function seedBrands() {
   try {
-    await mongoose.connect(config.mongoose.url, config.mongoose.options);
-    console.log('Connected to MongoDB');
+    // When called from the backend startup flow, mongoose is already connected.
+    // This function is intentionally connection-agnostic so it does not close the shared app connection.
 
     // Get first user for created_by (required for Model)
     const firstUser = await User.findOne();
@@ -428,16 +428,27 @@ async function seedBrands() {
     console.log('Seed completed successfully.');
   } catch (error) {
     console.error('Seed failed:', error);
-    process.exit(1);
-  } finally {
+    throw error;
+  }
+}
+
+async function seedBrandsStandalone() {
+  try {
+    await mongoose.connect(config.mongoose.url, config.mongoose.options);
+    console.log('Connected to MongoDB');
+    await seedBrands();
     await mongoose.disconnect();
     console.log('Disconnected from MongoDB');
     process.exit(0);
+  } catch (error) {
+    console.error('Seed failed:', error);
+    await mongoose.disconnect().catch(() => {});
+    process.exit(1);
   }
 }
 
 if (require.main === module) {
-  seedBrands();
+  seedBrandsStandalone();
 }
 
 module.exports = seedBrands;

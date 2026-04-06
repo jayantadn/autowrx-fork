@@ -256,8 +256,8 @@ function getModelApiPaths(modelName) {
 
 async function seedModelFeatures() {
   try {
-    await mongoose.connect(config.mongoose.url, config.mongoose.options);
-    console.log('Connected to MongoDB');
+    // When called from the backend startup flow, mongoose is already connected.
+    // This function is intentionally connection-agnostic so it does not close the shared app connection.
 
     const firstUser = await User.findOne();
     if (!firstUser) {
@@ -361,16 +361,27 @@ async function seedModelFeatures() {
     console.log('Seed model features completed successfully.');
   } catch (error) {
     console.error('Seed failed:', error);
-    process.exit(1);
-  } finally {
+    throw error;
+  }
+}
+
+async function seedModelFeaturesStandalone() {
+  try {
+    await mongoose.connect(config.mongoose.url, config.mongoose.options);
+    console.log('Connected to MongoDB');
+    await seedModelFeatures();
     await mongoose.disconnect();
     console.log('Disconnected from MongoDB');
     process.exit(0);
+  } catch (error) {
+    console.error('Seed failed:', error);
+    await mongoose.disconnect().catch(() => {});
+    process.exit(1);
   }
 }
 
 if (require.main === module) {
-  seedModelFeatures();
+  seedModelFeaturesStandalone();
 }
 
 module.exports = seedModelFeatures;

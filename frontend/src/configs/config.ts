@@ -25,7 +25,7 @@ const config: any = {
     clientId: '',
   },
   runtime: {
-    url: 'https://kit.digitalauto.tech',
+    url: import.meta.env.VITE_RUNTIME_URL || 'https://kit.digitalauto.tech',
   },
   // strictAuth has been replaced by granular auth configs (PUBLIC_VIEWING, SELF_REGISTRATION, etc.)
   // See useAuthConfigs hook for the new implementation

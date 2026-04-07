@@ -179,56 +179,7 @@ const home = [
       },
     ],
   },
-  /*
-  {
-    type: 'news',
-    title: 'Top News',
-    items: [
-      {
-        title: 'Playground Introduction',
-        type: 'News',
-        date: '2 December 2024',
-        description:
-          'Explore the future of our digital.auto community with Prof. Dirk Slama with digital.auto playground.',
-        imageURL:
-          'https://bewebstudio.digitalauto.tech/data/projects/scqSwlCPJDj9/playground-introduction.png',
-        redirectURL: 'https://youtu.be/K3pindMCq1c',
-      },
-      {
-        title:
-          'Explore the SDV Guide - Your Complete Software-Defined Vehicle Resource',
-        type: 'Guide',
-        date: '10 June 2025',
-        description:
-          'Comprehensive SDV Guide covering Software-Defined Vehicle fundamentals through advanced topics. ',
-
-        imageURL:
-          'https://bewebstudio.digitalauto.tech/data/projects/nTcRsgxcDWgr/image.avif',
-        redirectURL: 'https://www.sdv.guide/',
-      },
-      {
-        title: 'Version v2.0 release',
-        type: 'News',
-        date: '6th January 2025',
-        description:
-          'We are pleased to announce the release of Version 2. The previous version remains accessible at https://digitalauto.netlify.app until Jan 17th 2025',
-        imageURL:
-          'https://bewebstudio.digitalauto.tech/data/projects/rUQXyRLKlgaL/annoucement.jpg',
-        redirectURL: 'https://docs.digital.auto/releases/version2/',
-      },
-      {
-        title: 'Contribute to playground development',
-        type: 'Event',
-        date: '17 January 2025',
-        description:
-          'Join us in developing playground.digital.auto on Eclipse Autowrx - an open platform where developers learn and experiment with software-defined vehicles.',
-        imageURL:
-          'https://bewebstudio.digitalauto.tech/data/projects/xT9wA8QU7xEN/new_images/autowrx.jpg',
-        redirectURL: 'https://gitlab.eclipse.org/eclipse/autowrx/autowrx',
-      },
-    ],
-  },
-  */
+ 
   {
     type: 'recent',
     title: 'Recent Prototypes',
@@ -255,32 +206,7 @@ const home = [
           },
         ],
       },
-      /*{
-        title: 'Standards & Open Source',
-        items: [
-          {
-            name: 'COVESA',
-            img: '/imgs/partners/covesa.png',
-            url: 'https://www.covesa.global',
-          },
-          {
-            name: 'Eclipse Foundation',
-            img: '/imgs/partners/eclipse-logo.svg',
-            url: 'https://www.eclipse.org',
-          },
-        ],
-      },
-      {
-        title: 'Academic Partners',
-        items: [
-          {
-            name: 'Ferdinand-Steinbeis-Institut',
-            img: '/imgs/partners/university.png',
-            url: 'https://ferdinand-steinbeis-institut.de',
-          },
-        ],
-      },
-      */
+      
     ],
   },
   

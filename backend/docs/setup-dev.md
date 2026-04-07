@@ -22,7 +22,7 @@ Create `.env` in `backend/` with at least:
 ```bash
 NODE_ENV=development
 PORT=8080
-MONGODB_URL=mongodb://localhost:27017/autowrx
+MONGODB_URL=mongodb://localhost:27010/autowrx
 JWT_SECRET=dev_secret_change_me
 JWT_COOKIE_NAME=token
 ```

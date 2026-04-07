@@ -15,7 +15,7 @@ const connect = async (url) => {
 };
 
 const main = async () => {
-  db = await connect('mongodb://etas-prod-playground-db:27017/playground-be');
+  db = await connect('mongodb://localhost:27010/playground-be');
   const models = await db
     .collection('models')
     .find({

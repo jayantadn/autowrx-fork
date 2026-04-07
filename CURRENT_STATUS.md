@@ -6,7 +6,7 @@
 - **Status:** ✅ Running
 - **Port:** 3201
 - **URL:** `http://localhost:3201`
-- **MongoDB:** Connected on `mongodb://localhost:27017/autowrx`
+- **MongoDB:** Connected on `mongodb://localhost:27010/autowrx`
 - **Auth:** JWT with httpOnly refresh token cookies
 - **CORS:** Configured for development (localhost with any port)
 

@@ -99,7 +99,7 @@ Returns all site configurations including secret ones.
 {
   "site-logo": "https://example.com/logo.png",
   "llm-api-key": "sk-1234567890abcdef",
-  "database-url": "mongodb://localhost:27017/autowrx"
+  "database-url": "mongodb://localhost:27010/autowrx"
 }
 ```
 

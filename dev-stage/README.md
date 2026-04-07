@@ -70,7 +70,7 @@ nano /opt/dev/autowrx/backend/.env
 ```
 
 Key settings to configure:
-- `MONGODB_URL` - Should be `mongodb://localhost:27020/autowrx-dev`
+- `MONGODB_URL` - Should be `mongodb://localhost:27010/autowrx-dev`
 - `JWT_SECRET` - Change to a secure value
 - `ADMIN_EMAILS` - Your admin email
 - `CORS_ORIGINS` - Include your test domain

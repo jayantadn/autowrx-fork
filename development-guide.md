@@ -82,8 +82,8 @@ cp .env.example .env
 
 # Edit .env file with your settings
 # At minimum, ensure MONGODB_URL is correct:
-# - For local Docker: MONGODB_URL=mongodb://localhost:27017/autowrx
-# - For remote MongoDB: MONGODB_URL=mongodb://your-remote-host:27017/autowrx
+# - For local Docker: MONGODB_URL=mongodb://localhost:27010/autowrx
+# - For remote MongoDB: MONGODB_URL=mongodb://localhost:27010/autowrx
 ```
 
 ### 4. Configure Frontend
@@ -132,9 +132,9 @@ NODE_ENV=development
 PORT=3200
 
 # Database
-MONGODB_URL=mongodb://localhost:27017/autowrx
+MONGODB_URL=mongodb://localhost:27010/autowrx
 # For remote MongoDB:
-# MONGODB_URL=mongodb://your-remote-host:27017/autowrx?authSource=admin
+# MONGODB_URL=mongodb://localhost:27010/autowrx?authSource=admin
 
 # JWT Configuration
 JWT_SECRET=dev_secret_change_me
@@ -204,7 +204,7 @@ If you're using a remote MongoDB (e.g., MongoDB Atlas, or a team server):
 1. Get the connection string from your MongoDB provider
 2. Update `backend/.env`:
    ```bash
-   MONGODB_URL=mongodb://username:password@host:port/database?authSource=admin
+   MONGODB_URL=mongodb://username:password@localhost:27010/database?authSource=admin
    ```
 3. Ensure your network allows connections from your IP address
 

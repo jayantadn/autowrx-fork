@@ -24,7 +24,7 @@ VITE_SERVER_VERSION=v2
 # Environment
 NODE_ENV=production
 PORT=3200
-MONGODB_URL=mongodb://your-mongodb-host:27017/autowrx
+MONGODB_URL=mongodb://localhost:27010/autowrx
 
 # JWT Settings
 JWT_COOKIE_NAME=token

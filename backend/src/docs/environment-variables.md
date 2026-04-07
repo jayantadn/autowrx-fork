@@ -7,7 +7,7 @@
 | `NODE_ENV`     | Environment type (production, development, test)                | -                                             |
 | `NAME`          | Environment name for container naming (dev, prod)               | -                                             |
 | `PORT`         | Application port                                                | `8080`                                        |
-| `MONGODB_URL`  | MongoDB connection URL                                          | `mongodb://playground-db:27017/playground-be` |
+| `MONGODB_URL`  | MongoDB connection URL                                          | `mongodb://localhost:27010/playground-be` |
 | `CORS_ORIGINS` | Allowed CORS origins (comma-separated regex patterns). See [CORS Configuration Guide](../../../CORS_CONFIGURATION.md) for details | `localhost:\\d+,127\\.0\\.0\\.1:\\d+`         |
 
 ### CORS_ORIGINS Examples

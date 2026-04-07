@@ -73,7 +73,7 @@ try {
 // Test 6: Mongoose Connection
 async function testMongoose() {
   try {
-    const testUrl = process.env.MONGODB_URL || 'mongodb://localhost:27017/test-db';
+    const testUrl = process.env.MONGODB_URL || 'mongodb://localhost:27010/test-db';
     await mongoose.connect(testUrl, {
       serverSelectionTimeoutMS: 5000,
     });

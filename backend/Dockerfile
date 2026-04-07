@@ -59,6 +59,15 @@ RUN mkdir -p data && chown -R node:node data
 # Copy frontend build into backend static folder
 COPY --from=frontend-builder --chown=node:node /app/backend/static/frontend-dist ./static/frontend-dist
 
+# Copy static files (builtin-widgets, images, plugin samples) from the build context
+COPY --chown=node:node backend/static/builtin-widgets ./static/builtin-widgets
+COPY --chown=node:node backend/static/images ./static/images
+COPY --chown=node:node backend/static/global.css ./static/global.css
+COPY --chown=node:node backend/static/plugin ./static/plugin
+
+# Copy default config files (home_content.json, etc.)
+COPY --chown=node:node backend/default ./default
+
 USER node
 
 EXPOSE 3200

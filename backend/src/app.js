@@ -115,8 +115,10 @@ app.use(loadAuthConfigs);
 
 app.use('/v2', routesV2);
 app.use('/static', express.static(path.join(__dirname, '../static')));
+app.use('/imgs', express.static(path.join(__dirname, '../static/frontend-dist/imgs')));
 app.use('/builtin-widgets', express.static(path.join(__dirname, '../static/builtin-widgets')));
 app.use('/images', express.static(path.join(__dirname, '../static/images')));
+app.use('/css', express.static(path.join(__dirname, '../static/frontend-dist/css')));
 app.use('/static/plugin', express.static(path.join(__dirname, '../static/plugin')));
 app.use('/plugin', express.static(path.join(__dirname, '../static/plugin')));
 // Serve uploaded files with date-based directory structure

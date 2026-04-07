@@ -17,7 +17,7 @@ import { VehicleApi } from '@/types/model.type'
 import { shallow } from 'zustand/shallow'
 import { Button } from '@/components/atoms/button'
 import { TbPlus, TbSearch } from 'react-icons/tb'
-import { Dialog, DialogContent } from '@/components/atoms/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/atoms/dialog'
 import FormCreateWishlistApi from '../molecules/forms/FormCreateWishlistApi'
 import useCurrentModel from '@/hooks/useCurrentModel'
 import usePermissionHook from '@/hooks/usePermissionHook'
@@ -177,6 +177,7 @@ const ModelApiList = ({
               <TbPlus className="mr-1 h-4 w-4" /> Add Wishlist Signal
             </Button>
             <DialogContent>
+              <DialogTitle className="sr-only">Add Wishlist Signal</DialogTitle>
               {(model_id || currentModel?.id) && currentModel && (
                 <FormCreateWishlistApi
                   modelId={model_id || currentModel.id}

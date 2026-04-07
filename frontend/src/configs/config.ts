@@ -9,13 +9,14 @@
 import { url } from 'inspector'
 
 const serverBaseUrl = import.meta.env.VITE_SERVER_BASE_URL || ''
-// Only use relative URLs in dev if backend is on the same port as frontend (i.e., proxied)
-// Otherwise, use the full URL to avoid cross-port issues
-const isLocalDevBackend = import.meta.env.DEV && /https?:\/\/(localhost|127\.0\.0\.1)$/.test(serverBaseUrl)
+// Development: Use relative URLs if backend is on localhost (same server)
+// Production: Use the provided serverBaseUrl, or default to root for same-origin requests
+const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(serverBaseUrl)
+const shouldUseRelativeUrls = import.meta.env.DEV && isLocalhost
 
 const config: any = {
   instance: 'autowrx',
-  serverBaseUrl: isLocalDevBackend ? '' : serverBaseUrl,
+  serverBaseUrl: shouldUseRelativeUrls ? '' : serverBaseUrl,
   serverVersion: import.meta.env.VITE_SERVER_VERSION || 'v2',
   logBaseUrl: '',
   // cacheBaseUrl: '',

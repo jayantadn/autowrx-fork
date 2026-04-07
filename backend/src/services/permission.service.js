@@ -158,6 +158,9 @@ const check = async (userId, permission, id) => {
 };
 
 const checkModelPermission = (model, userId, permission) => {
+  if (permission === PERMISSIONS.READ_MODEL && model.visibility === 'public') {
+    return true;
+  }
   if (String(model.created_by) === String(userId)) {
     return true;
   }
@@ -204,7 +207,7 @@ const hasPermission = async (userId, permission, id, type) => {
     return checkAssetPermission(asset, userId, permission);
   }
 
-  const model = await Model.findById(id).select('created_by');
+  const model = await Model.findById(id).select('created_by visibility');
   const prototype = await Prototype.findById(id).populate('model_id').select('created_by model_id');
 
   if (model) {

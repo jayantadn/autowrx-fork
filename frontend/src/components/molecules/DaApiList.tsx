@@ -13,7 +13,7 @@ import { DaCopy } from '../atoms/DaCopy'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/atoms/tooltip'
 import { useState } from 'react'
 import { TbPlaylistAdd, TbPlus } from 'react-icons/tb'
-import { Dialog, DialogContent } from '@/components/atoms/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/atoms/dialog'
 import usePermissionHook from '@/hooks/usePermissionHook'
 import { PERMISSIONS } from '@/data/permission'
 import { useParams } from 'react-router-dom'
@@ -117,6 +117,7 @@ const DaApiListItem = ({
       {isAuthorized && (
         <Dialog open={isOpenWishlistPopup} onOpenChange={setIsOpenWishlistPopup}>
           <DialogContent>
+            <DialogTitle className="sr-only">Create Custom Signal</DialogTitle>
             {model_id && model && (
               <FormCreateWishlistApi
                 modelId={model_id}

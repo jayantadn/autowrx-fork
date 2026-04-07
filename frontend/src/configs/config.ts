@@ -9,7 +9,9 @@
 import { url } from 'inspector'
 
 const serverBaseUrl = import.meta.env.VITE_SERVER_BASE_URL || ''
-const isLocalDevBackend = import.meta.env.DEV && /https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(serverBaseUrl)
+// Only use relative URLs in dev if backend is on the same port as frontend (i.e., proxied)
+// Otherwise, use the full URL to avoid cross-port issues
+const isLocalDevBackend = import.meta.env.DEV && /https?:\/\/(localhost|127\.0\.0\.1)$/.test(serverBaseUrl)
 
 const config: any = {
   instance: 'autowrx',

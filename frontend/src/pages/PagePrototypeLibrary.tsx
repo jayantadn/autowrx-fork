@@ -46,6 +46,7 @@ const PagePrototypeLibrary = () => {
   const [isAuthorized] = usePermissionHook([PERMISSIONS.READ_MODEL, model_id])
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const canCreatePrototype = Boolean(user && model && isAuthorized)
   const [selectedFilters, setSelectedFilters] = useState<string[]>(() =>
     JSON.parse(
       localStorage.getItem('prototypeLibrary-selectedFilter') || '["Newest"]',
@@ -208,17 +209,14 @@ const PagePrototypeLibrary = () => {
                   defaultValue={selectedFilters}
                   label="Sort"
                 />
-                <div
-                  className={cn(
-                    'flex h-fit bg-background opacity-50 pointer-events-none',
-                    isAuthorized && 'opacity-100 pointer-events-auto',
-                  )}
-                >
+                <div className="flex h-fit bg-background">
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex"
                     onClick={() => setIsOpenImportDialog(true)}
+                    disabled={!canCreatePrototype}
+                    title={!user ? 'Sign in to import prototypes' : !isAuthorized ? 'You need access to this model to import prototypes' : ''}
                   >
                     <TbFileImport className="w-5 h-5" />
                     Import
@@ -232,6 +230,8 @@ const PagePrototypeLibrary = () => {
                         variant="default"
                         size="sm"
                         className="flex ml-2"
+                        disabled={!canCreatePrototype}
+                        title={!user ? 'Sign in to create prototypes' : !isAuthorized ? 'You need access to this model to create prototypes' : ''}
                       >
                         <TbPlus className="w-5 h-5" />
                         Create

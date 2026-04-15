@@ -11,6 +11,7 @@ import { PublicClientApplication } from '@azure/msal-browser'
 import { createMSALInstance, getLoginRequest, SSOProvider } from '@/services/sso.service'
 import { ssoService } from '@/services/auth.service'
 import { useToast } from '@/components/molecules/toaster/use-toast'
+import useAuthStore from '@/stores/authStore'
 
 interface SSOHandlerProps {
   provider: SSOProvider
@@ -22,6 +23,9 @@ const SSOHandler = ({ provider, setSSOLoading, children }: SSOHandlerProps) => {
   const [msalInstance, setMsalInstance] = useState<PublicClientApplication | null>(null)
   const [isInitializing, setIsInitializing] = useState(false)
   const { toast } = useToast()
+  const setAccess = useAuthStore((state) => state.setAccess)
+  const setUser = useAuthStore((state) => state.setUser)
+  const setOpenLoginDialog = useAuthStore((state) => state.setOpenLoginDialog)
 
   useEffect(() => {
     // Initialize MSAL instance when provider changes
@@ -88,15 +92,13 @@ const SSOHandler = ({ provider, setSSOLoading, children }: SSOHandlerProps) => {
       const response = await ssoService(loginResponse.idToken, provider.id)
 
       if (response.data) {
+        setAccess(response.data.tokens.access)
+        setUser(response.data.user, response.data.tokens.access)
+        setOpenLoginDialog(false)
         toast({
           title: 'Login Successful',
           description: `Welcome back, ${response.data.user?.name || 'User'}!`,
         })
-
-        // Reload page to refresh auth state
-        setTimeout(() => {
-          window.location.href = window.location.href
-        }, 500)
       }
     } catch (error: any) {
       console.log('error in SSOHandler', error)

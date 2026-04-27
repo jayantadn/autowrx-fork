@@ -15,6 +15,7 @@ import { Button } from "@/components/atoms/button";
 import ShareAssetPanel from "@/components/molecules/ShareAssetPanel";
 import DaDialog from "@/components/molecules/DaDialog";
 import { Spinner } from "@/components/atoms/spinner";
+import { BGSW_RUNTIME_PREFIX } from "@/const/runtime";
 
 interface iPropRuntimeAssetManager {
     onClose: () => void,
@@ -26,8 +27,13 @@ const RuntimeAssetManager = ({ onClose, onCancel }: iPropRuntimeAssetManager) =>
     const { useFetchAssets, deleteAsset, createAsset, updateAsset } = useAssets()
     const { data: assets, isLoading, refetch } = useFetchAssets()
     const [activeAsset, setActiveAsset] = useState<any>()
-    const [newRtName, setNewRtName] = useState<string>("Runtime-")
+    const [newRtName, setNewRtName] = useState<string>(BGSW_RUNTIME_PREFIX)
     const [shareDialogOpen, setShareDialogOpen] = useState<boolean>(false)
+
+    const trimmedName = newRtName.trim()
+    const hasBgswPrefix = trimmedName.toLowerCase().startsWith(BGSW_RUNTIME_PREFIX)
+    const hasSuffix = trimmedName.length > BGSW_RUNTIME_PREFIX.length
+    const isValidRtName = hasBgswPrefix && hasSuffix
 
     useEffect(() => {
         setMyRuntimes(assets?.filter((a: any) => a.type == 'CLOUD_RUNTIME') || [])
@@ -70,17 +76,18 @@ const RuntimeAssetManager = ({ onClose, onCancel }: iPropRuntimeAssetManager) =>
                         value={newRtName}
                         onChange={(e) => setNewRtName(e.target.value)}
                         className="flex w-[280px] mx-2"
+                        placeholder={`${BGSW_RUNTIME_PREFIX}<name>`}
                     />
-                    <Button 
-                        disabled={newRtName.trim().length <= 0} 
+                    <Button
+                        disabled={!isValidRtName}
                         onClick={async () => {
                             try {
                                 await createAsset.mutateAsync({
-                                    name: newRtName,
+                                    name: trimmedName,
                                     type: 'CLOUD_RUNTIME',
                                     data: '{}',
                                 })
-                                setNewRtName('Runtime-')
+                                setNewRtName(BGSW_RUNTIME_PREFIX)
                                 await refetch()
                             } catch (err) {
                                 console.error('Error creating asset:', err)
@@ -90,6 +97,14 @@ const RuntimeAssetManager = ({ onClose, onCancel }: iPropRuntimeAssetManager) =>
                         Add
                     </Button>
                 </div>
+                {!isValidRtName && trimmedName.length > 0 && (
+                    <div className="mt-1 text-xs text-red-600">
+                        Runtime code must start with{' '}
+                        <code className="font-mono">{BGSW_RUNTIME_PREFIX}</code>{' '}
+                        and include a suffix (e.g.{' '}
+                        <code className="font-mono">{BGSW_RUNTIME_PREFIX}dev-1</code>).
+                    </div>
+                )}
             </div>
 
             {isLoading && (

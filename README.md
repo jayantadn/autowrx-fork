@@ -2,7 +2,7 @@
 
 AutoWRX is a cloud-based, rapid prototyping environment for software-defined vehicle (SDV) applications. It provides a platform for building and testing new SDV-enabled features against real-world vehicle APIs, with seamless migration to automotive runtimes like Eclipse Velocitas.
 
-> **BGSW extension from upstream**: This fork enforces a private runtime namespace (`bgsw-runtime-*`) on the frontend so that runtimes from the public `digital.auto` playground are not visible inside this instance. See the [BGSW Runtime Isolation Guide](docs/runtime-isolation.md) for the full context, the modified files, and the exact `docker run` command to spin up a private runtime.
+> **For BGSW Playground users:** the **Runtime** dropdown only shows runtimes whose name starts with `bgsw-runtime-`. Public runtimes from `playground.digital.auto` are hidden. See the [BGSW Runtime Guide](docs/runtime-isolation.md) to start your own runtime and have it appear in the dropdown.
 
 ## Overview
 
@@ -24,13 +24,13 @@ AutoWRX follows a **Core vs. Plugin** philosophy:
 
 The platform uses a dynamic component architecture that enables plugin-provided UI components to be seamlessly rendered within the core application, making the entire UI configuration-driven.
 
-## BGSW Runtime Namespace Isolation
+## BGSW Runtimes
 
-This BGSW instance ships with a frontend namespace boundary that hides runtimes belonging to the public `digital.auto` playground and only surfaces runtimes that belong to BGSW (`bgsw-runtime-*`). To make a runtime appear, run an `eclipse-autowrx/sdv-runtime` container with `RUNTIME_PREFIX="bgsw-runtime-"` (the trailing dash matters).
+The BGSW Playground only shows runtimes whose name starts with `bgsw-runtime-`. Public runtimes from `playground.digital.auto` are hidden — you cannot see them or select them.
 
-For the full rationale, the list of modified files, the exact `docker run` command, verification steps, common pitfalls, and the future-hardening roadmap, see the dedicated guide:
+To make your own runtime appear in the **Runtime** dropdown, run a runtime container with the right name and pick it from the dropdown. The full step-by-step is in:
 
-**→ [docs/runtime-isolation.md](docs/runtime-isolation.md)**
+**→ [BGSW Runtime Guide](docs/runtime-isolation.md)**
 
 ## Project Structure
 
@@ -84,7 +84,7 @@ If you want to deploy AutoWRX to production, see the **[Instance Setup Guide](in
 
 ## Documentation
 
-- **[BGSW Runtime Isolation Guide](docs/runtime-isolation.md)** - BGSW-only: how private runtimes are isolated from the public playground
+- **[BGSW Runtime Guide](docs/runtime-isolation.md)** - How to start a runtime and have it show up in the Runtime dropdown
 - **[Development Guide](development-guide.md)** - Local development setup
 - **[Plugin Development](docs/plugin/README.md)** - Creating and developing plugins
 - **[Project Structure](docs/project-structure.md)** - Codebase organization

@@ -1,170 +1,165 @@
-# BGSW Runtime Namespace Isolation
+# BGSW Runtime Guide
 
-This document explains the **frontend namespace boundary** that this BGSW instance applies on top of upstream AutoWRX. Read this first if you are:
+This guide explains how runtimes work in the **BGSW Playground** and how to make sure your own runtime shows up in the **Runtime** dropdown when you run a prototype.
 
-- A user of BGSW instance who needs to spin up a private runtime and have it appear in the prototype runtime selector.
-
-
----
-
-## TL;DR
-
-- BGSW users only see runtimes whose **runtime ID** (the `RUNTIME_PREFIX + RUNTIME_NAME` set when the runtime container is launched) starts with `bgsw-runtime-`.
-- To make a runtime appear, run an `eclipse-autowrx/sdv-runtime` Docker container with `RUNTIME_PREFIX="bgsw-runtime-"` (the trailing dash matters — see [Common pitfalls](#common-pitfalls)).
-- This is a **UI-level** boundary, not a network boundary. See [Future hardening](#future-hardening) for the path to a hard boundary.
+It's written for people who use the BGSW Playground day-to-day — not for the developers maintaining its source code.
 
 ---
 
-## Why this exists
+## The naming rule
 
-Both the public `digital.auto` playground and this BGSW playground connect, by default, to the **same** central Socket.IO broker at `https://kit.digitalauto.tech`. That broker indiscriminately broadcasts every connected runtime — including public ones (`runtime-public-*`, `runtime-shared-*`) — to any client that subscribes.
+The BGSW Playground only shows runtimes whose name starts with `bgsw-runtime-`. Public runtimes from `playground.digital.auto` are deliberately hidden — you cannot see them or select them here.
 
-Because we cannot change the upstream broker, the simplest robust mitigation is to filter on the client side:
+So the rule is simple:
 
-- BGSW users only see runtimes whose **runtime ID** starts with `bgsw-runtime-`.
-- The asset editor only lets them register names inside that namespace.
+> Every runtime you start, and every runtime you register through **Add Runtime**, must have a name that starts with `bgsw-runtime-` followed by a unique suffix of your choice.
 
-This means that even if a user of BGSW instance is connected to the same broker as the public playground, the public-playground runtimes are invisible and unselectable inside the BGSW UI.
-
-> **Important caveat**: this is a **UI-level** boundary, not a **network** boundary. Anyone with broker access can still see all runtimes by inspecting WebSocket frames in DevTools. For a hard boundary, host your own broker — see [Future hardening](#future-hardening).
-
----
-
-## How it works
-
-The boundary is implemented in three layers, all backed by a single source of truth.
-
-### 1. Single source of truth — `frontend/src/const/runtime.ts`
-
-This file (new in this fork) centralizes the constants and helper functions:
-
-```ts
-export const BGSW_RUNTIME_PREFIX = 'bgsw-runtime-'
-
-export const PUBLIC_RUNTIME_PREFIXES: readonly string[] = [
-  'runtime-public-',
-  'runtime-shared-',
-]
-
-export const isPublicRuntime = (kitId: string | undefined | null): boolean => { ... }
-export const isBgswRuntime  = (kitId: string | undefined | null): boolean => { ... }
-```
-
-Every other place in the frontend imports from here, so changing the namespace is a one-line edit.
-
-### 2. Filter at ingest — `frontend/src/components/molecules/DaRuntimeConnector.tsx`
-
-This component holds the live socket connection to the runtime broker (`kit.digitalauto.tech`). On every list-all-runtimes event:
-
-- It first hard-blocks any runtime whose ID matches a `PUBLIC_RUNTIME_PREFIXES` entry, **regardless** of the caller-supplied `targetPrefix` prop. This is a defense-in-depth measure: even a future caller that forgets to set `targetPrefix` can never accidentally surface public runtimes.
-- It then applies the caller's `targetPrefix` (default: `BGSW_RUNTIME_PREFIX`) to retain only matching runtimes.
-
-The non-deploy `useEffect` that builds the dropdown list now displays **every** surviving (BGSW-namespaced) runtime; the previous public-runtime padding logic was removed, since padding with public runtimes would defeat the namespace.
-
-### 3. Default prefix at the call site — `frontend/src/components/molecules/dashboard/DaRuntimeControl.tsx`
-
-Both `<DaRuntimeConnector>` mount points (the custom-broker branch and the default branch) pass `targetPrefix={BGSW_RUNTIME_PREFIX}` instead of the upstream literal `"runtime-"`.
-
-### 4. Asset-creation guardrail — `frontend/src/components/organisms/RuntimeAssetManager.tsx`
-
-The "Add new asset" form:
-
-- Pre-fills the input with `bgsw-runtime-`.
-- Validates that the trimmed name (a) starts with `bgsw-runtime-` and (b) has at least one suffix character.
-- Disables the **Add** button on invalid input and shows a red helper message explaining the expected pattern (e.g. `bgsw-runtime-dev-1`).
-- Resets the input back to `bgsw-runtime-` after a successful create.
-
-This keeps the asset list in sync with what the namespace filter is willing to show.
+| Runtime name              | Shows up in the BGSW Playground? |
+|---|---|
+| `bgsw-runtime-my-laptop`  | yes |
+| `bgsw-runtime-team-alpha` | yes |
+| `bgsw-runtime-demo`       | yes |
+| `Runtime-MyKit`           | no — wrong prefix |
+| `runtime-public-demo`     | no — public runtime, hidden by design |
 
 ---
 
-## Spinning up a BGSW runtime
+## Two things you do, in order
 
-A BGSW runtime is just a standard `eclipse-autowrx/sdv-runtime` Docker container started with a `RUNTIME_PREFIX` matching the namespace.
+To get your runtime into the **Runtime** dropdown, you do two things:
+
+1. **Start a runtime** (a Docker container) on a machine you control.
+2. **Open a prototype** in the BGSW Playground and pick the runtime from the **Runtime** dropdown.
+
+Optionally, you can also register the name in **My Assets** so you and your teammates can find it again later.
+
+---
+
+## Starting a runtime
+
+Run the runtime container on any machine that has Docker (your laptop, a VM, or a Raspberry Pi). The container connects itself to the BGSW Playground.
 
 ```bash
 docker run -d \
   -e RUNTIME_PREFIX="bgsw-runtime-" \
-  -e RUNTIME_NAME="MyRuntime" \
+  -e RUNTIME_NAME="my-laptop" \
   ghcr.io/eclipse-autowrx/sdv-runtime:latest
 ```
 
-By default the container connects to `https://kit.digitalauto.tech`. To use a different broker, also pass `-e SYNCER_SERVER_URL="https://your-broker"`.
+Replace `my-laptop` with whatever suffix you want. The full runtime name will be `bgsw-runtime-my-laptop` and that's what will appear in the **Runtime** dropdown.
 
-To forward the Kuksa data broker port out of the container (so `kuksa-client` can reach it from your host):
+### The trailing dash matters
+
+The image just glues `RUNTIME_PREFIX` and `RUNTIME_NAME` together with no separator in between. So **`RUNTIME_PREFIX` must end with a dash** — otherwise the runtime name comes out as one word and the BGSW Playground won't show it.
+
+| `RUNTIME_PREFIX` | `RUNTIME_NAME` | Resulting runtime name     | Shows up? |
+|---|---|---|---|
+| `bgsw-runtime-`  | `my-laptop`    | `bgsw-runtime-my-laptop`   | yes |
+| `bgsw-runtime`   | `my-laptop`    | `bgsw-runtimemy-laptop`    | no — runs together |
+| *(unset)*        | `my-laptop`    | `Runtime-my-laptop`        | no — wrong prefix |
+
+If the dropdown stays empty after starting your container, the missing dash is by far the most common cause.
+
+### Optional: forward the Kuksa data broker port
+
+If you also need to talk to the in-container Kuksa data broker from your host (using `kuksa-client` or similar), expose port `55555`:
 
 ```bash
 docker run -d \
   -e RUNTIME_PREFIX="bgsw-runtime-" \
-  -e RUNTIME_NAME="MyRuntime" \
+  -e RUNTIME_NAME="my-laptop" \
   -p 55555:55555 \
   ghcr.io/eclipse-autowrx/sdv-runtime:latest
 ```
 
-### Verifying it appears
+---
 
-1. **Container is alive**: `docker ps` — `docker run -d` returns a container ID even if the container crashes seconds later, so always verify it's actually running.
-2. **Registration log line**: `docker logs <id> --tail 50` — look for a line containing your **runtime ID**, e.g. `bgsw-runtime-MyRuntime`.
-3. **Broker has it**: in the browser, open **DevTools → Network → WS**, click the `kit.digitalauto.tech` socket, and search the message frames for `bgsw-runtime-MyRuntime`. If the broker is broadcasting it, the dropdown will list it after a refresh.
+## Selecting your runtime in a prototype
+
+1. Open any prototype in the BGSW Playground.
+2. Switch to the **SDV Code** tab.
+3. Find the **Runtime** dropdown at the top of the right-hand panel.
+4. Pick your runtime (e.g. `bgsw-runtime-my-laptop`).
+5. Press **Run** to execute the prototype on that runtime.
+
+If you don't see your runtime, refresh the page first (the dropdown only refreshes itself periodically), then jump to [Troubleshooting](#troubleshooting-no-runtime-available).
 
 ---
 
-## Common pitfalls
+## Registering a runtime name in **My Assets**
 
-### The trailing dash in `RUNTIME_PREFIX`
+Next to the **Runtime** dropdown you'll see an **Add Runtime** button. Clicking it opens the **My Assets** dialog, which lets you save runtime names so you (and the people you share with) can find them later.
 
-The image concatenates `RUNTIME_PREFIX + RUNTIME_NAME` literally — there is no separator inserted between them. So:
+In the **Add new asset** section:
 
-| `RUNTIME_PREFIX` | `RUNTIME_NAME` | Resulting runtime ID       | Visible in BGSW UI? |
-|---|---|---|---|
-| `bgsw-runtime-`  | `MyRuntime`    | `bgsw-runtime-MyRuntime`   | yes |
-| `bgsw-runtime`   | `MyRuntime`    | `bgsw-runtimeMyRuntime`    | no — filtered out |
-| *(unset, defaults to `Runtime-`)* | `MyRuntime` | `Runtime-MyRuntime` | no — wrong namespace |
+- The **Runtime Code** field is pre-filled with `bgsw-runtime-`.
+- The **Add** button stays disabled until you type a suffix after the prefix (for example, `bgsw-runtime-my-laptop`).
+- Once the name follows the rule, click **Add** and it appears in the asset list below.
 
-If the dropdown stays empty after starting your container, the missing trailing dash is by far the most common cause.
+From the asset list you can:
 
-### "Asset record" is not the same as "runtime is online"
+- **Share** an asset with another user (share icon).
+- **Delete** an asset (trash icon).
 
-Adding an asset via the **Add new asset** form only registers the name in the BGSW backend's MongoDB. It does **not** spin up a runtime container. The dropdown only lists runtimes that are actually connected to the broker.
+> **Important:** Adding an asset only **saves the name**. It does **not** start a runtime. You still need to run the Docker container from the previous section using the same `RUNTIME_NAME` for the runtime to actually appear in the **Runtime** dropdown.
 
-In other words: the asset record is metadata, the running container is what populates the UI. You can register an asset for a name that doesn't exist yet, and you can have a runtime appear in the UI without ever registering an asset (as long as its runtime ID starts with `bgsw-runtime-`).
-
-### Stale local-storage `last-rt`
-
-If a previously selected runtime had a non-BGSW runtime ID, the connector may still try to auto-select it from `localStorage`. Clearing the `last-rt` key in DevTools fixes this on the rare occasion it matters.
+You can also use the **Runtime** dropdown without ever opening **My Assets** — any runtime whose name starts with `bgsw-runtime-` and is currently online will show up automatically.
 
 ---
 
-## Files modified vs. upstream
+## Troubleshooting: "No runtime available"
 
-| File | Status | Purpose |
-|---|---|---|
-| `backend/.env` | modified | `PORT=3201` and `MONGODB_URL=mongodb://localhost:27017/autowrx` to match the Vite dev proxy and a standard local Mongo install. |
-| `frontend/.env` | modified | `VITE_SERVER_BASE_URL=http://localhost:3201` to match the backend port. |
-| `frontend/src/const/runtime.ts` | **new** | Single source of truth for the namespace constants and helpers. |
-| `frontend/src/components/molecules/DaRuntimeConnector.tsx` | modified | Hard-blocks public/shared runtimes at ingest, removes public-runtime padding. |
-| `frontend/src/components/molecules/dashboard/DaRuntimeControl.tsx` | modified | Passes `BGSW_RUNTIME_PREFIX` to both `DaRuntimeConnector` mount points. |
-| `frontend/src/components/organisms/RuntimeAssetManager.tsx` | modified | Enforces the `bgsw-runtime-<suffix>` shape on new asset creation. |
+If the **Runtime** dropdown stays empty after starting your container:
+
+1. **Is the container actually running?**
+   On the machine where you ran `docker run`:
+   ```bash
+   docker ps
+   docker logs <container_id> --tail 50
+   ```
+   `docker run -d` returns a container ID even if the container crashed seconds later — make sure it's still listed in `docker ps` and the logs don't show errors.
+
+2. **Did you include the trailing dash in `RUNTIME_PREFIX`?**
+   Re-check: it must be `RUNTIME_PREFIX="bgsw-runtime-"` (with the dash). If not, stop the container and start a fresh one with the corrected value.
+
+3. **Does the runtime name actually start with `bgsw-runtime-`?**
+   Look in the container logs for the line confirming the runtime's name. It must read `bgsw-runtime-<your-suffix>`. Anything else (for example `Runtime-…`, which is what you get if you forget to set `RUNTIME_PREFIX`) will be hidden.
+
+4. **Refresh the page.**
+   The **Runtime** dropdown only refreshes periodically — a fresh page load is the fastest way to pick up a newly started runtime.
+
+5. **Network restrictions?**
+   The runtime container needs outbound HTTPS access to `kit.digitalauto.tech` to register itself. If your corporate network or firewall blocks that, the container will run locally but never appear in the BGSW Playground.
+
+If none of the above helps, contact the BGSW Playground administrator with the output of `docker logs <container_id>`.
 
 ---
 
-## Future hardening
+## Choosing a good runtime name
 
-The current implementation is a UI-level boundary. To make it stronger:
+The part after `bgsw-runtime-` is up to you. Pick something that helps you and your teammates recognize the runtime quickly. Suggested patterns:
 
-- **Self-host the runtime broker**. Stand up your own Socket.IO broker (e.g. as a service in `instance-setup/`) and point both the runtime container's `SYNCER_SERVER_URL` and the frontend's `RUNTIME_SERVER_URL` site-config (Admin → Site Config) at it. This converts the namespace into a real network boundary — public-playground runtimes literally cannot reach the BGSW broker.
-- **Empty-state hint in the runtime dropdown**. When no `bgsw-runtime-*` runtime is online, render an inline tip with a click-to-copy `docker run` snippet. This prevents the most common new-user confusion ("I added an asset, why is the dropdown still empty?").
-- **Server-side validation of asset names**. Currently the `bgsw-runtime-*` naming convention is enforced only in the frontend. Adding a Mongoose validator on the `assets` collection would prevent a custom client from registering off-namespace names.
-- **End-to-end test**. A Playwright test that boots a `sdv-runtime` container with a `runtime-public-*` runtime ID and asserts the BGSW dropdown stays empty would lock the namespace contract in CI.
+- **Per developer:** `bgsw-runtime-<your-shortname>` (e.g. `bgsw-runtime-tyj2kor`).
+- **Per machine:** `bgsw-runtime-<machine-name>` (e.g. `bgsw-runtime-laptop-01`).
+- **Per project or demo:** `bgsw-runtime-<project>-<env>` (e.g. `bgsw-runtime-xuv700-dev`).
+
+Avoid generic suffixes like `bgsw-runtime-test` — if two people run that name at the same time, only one runtime will be visible at any moment.
 
 ---
 
-## Related reading
+## Why the BGSW Playground filters runtimes
 
-- [`development-guide.md`](../development-guide.md) — local setup for backend + frontend.
-- [`docs/concept.md`](concept.md) — Core vs. Plugin architecture.
-- [`docs/project-structure.md`](project-structure.md) — full codebase layout.
-- Upstream runtime image: [`eclipse-autowrx/sdv-runtime`](https://github.com/eclipse-autowrx/sdv-runtime).
+By default, the public `playground.digital.auto` runtime registry shows every runtime running anywhere in the world to every connected user. The BGSW Playground filters that list down to runtimes whose name starts with `bgsw-runtime-`, so you and your team only see — and only run prototypes against — runtimes that you started yourselves.
+
+This is a display-level filter. If you have stricter requirements — for example, runtimes that should never reach the public registry at all — please contact the BGSW Playground administrator about a fully private setup.
+
+---
+
+## Need help?
+
+- Container running but not appearing → see [Troubleshooting](#troubleshooting-no-runtime-available).
+- Naming question → see [The naming rule](#the-naming-rule).
+- Anything else → reach out to the BGSW Playground administrator.
 
 ---
 

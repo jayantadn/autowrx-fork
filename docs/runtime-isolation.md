@@ -31,9 +31,3 @@ The **Add Runtime** button opens **My Assets**, where you can save runtime names
 - Check the trailing dash in `RUNTIME_PREFIX`.
 - Refresh the page; the dropdown only polls periodically.
 - Make sure outbound HTTPS to `kit.digitalauto.tech` isn't blocked by your network.
-
-If still stuck, send `docker logs <container_id>` to the BGSW Playground administrator.
-
----
-
-**Copyright (c) 2025 Eclipse Foundation. SPDX-License-Identifier: MIT.**

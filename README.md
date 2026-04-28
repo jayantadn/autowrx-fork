@@ -2,7 +2,7 @@
 
 AutoWRX is a cloud-based, rapid prototyping environment for software-defined vehicle (SDV) applications. It provides a platform for building and testing new SDV-enabled features against real-world vehicle APIs, with seamless migration to automotive runtimes like Eclipse Velocitas.
 
-> **BGSW deviation from upstream**: This fork enforces a private runtime namespace (`bgsw-runtime-*`) on the frontend so that runtimes from the public `digital.auto` playground are not visible inside this instance. See the [BGSW Runtime Isolation Guide](docs/runtime-isolation.md) for the full context, the modified files, and the exact `docker run` command to spin up a private runtime.
+> **BGSW extension from upstream**: This fork enforces a private runtime namespace (`bgsw-runtime-*`) on the frontend so that runtimes from the public `digital.auto` playground are not visible inside this instance. See the [BGSW Runtime Isolation Guide](docs/runtime-isolation.md) for the full context, the modified files, and the exact `docker run` command to spin up a private runtime.
 
 ## Overview
 

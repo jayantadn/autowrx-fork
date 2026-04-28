@@ -1,18 +1,15 @@
 # BGSW Runtime Namespace Isolation
 
-This document explains the **frontend-only namespace boundary** that this BGSW instance applies on top of upstream AutoWRX. Read this first if you are:
+This document explains the **frontend namespace boundary** that this BGSW instance applies on top of upstream AutoWRX. Read this first if you are:
 
-- A BGSW developer who needs to spin up a private runtime and have it appear in the prototype runtime selector.
-- A maintainer trying to understand which files differ from upstream `eclipse-autowrx/digital_auto`.
-- A reviewer evaluating the security posture of this fork.
+- A user of BGSW instance who needs to spin up a private runtime and have it appear in the prototype runtime selector.
+
 
 ---
 
 ## TL;DR
 
-- BGSW users only see runtimes whose `kit_id` starts with `bgsw-runtime-`.
-- Public/shared runtimes from the upstream playground (`runtime-public-*`, `runtime-shared-*`) are hard-blocked at ingest, regardless of any caller-supplied prefix.
-- The "Add new asset" form pre-fills `bgsw-runtime-` and refuses to submit unless a non-empty suffix is provided.
+- BGSW users only see runtimes whose **runtime ID** (the `RUNTIME_PREFIX + RUNTIME_NAME` set when the runtime container is launched) starts with `bgsw-runtime-`.
 - To make a runtime appear, run an `eclipse-autowrx/sdv-runtime` Docker container with `RUNTIME_PREFIX="bgsw-runtime-"` (the trailing dash matters — see [Common pitfalls](#common-pitfalls)).
 - This is a **UI-level** boundary, not a network boundary. See [Future hardening](#future-hardening) for the path to a hard boundary.
 
@@ -24,10 +21,10 @@ Both the public `digital.auto` playground and this BGSW playground connect, by d
 
 Because we cannot change the upstream broker, the simplest robust mitigation is to filter on the client side:
 
-- BGSW users only see runtimes whose `kit_id` starts with `bgsw-runtime-`.
+- BGSW users only see runtimes whose **runtime ID** starts with `bgsw-runtime-`.
 - The asset editor only lets them register names inside that namespace.
 
-This means that even if a BGSW developer is connected to the same broker as the public playground, the public-playground runtimes are invisible and unselectable inside the BGSW UI.
+This means that even if a user of BGSW instance is connected to the same broker as the public playground, the public-playground runtimes are invisible and unselectable inside the BGSW UI.
 
 > **Important caveat**: this is a **UI-level** boundary, not a **network** boundary. Anyone with broker access can still see all runtimes by inspecting WebSocket frames in DevTools. For a hard boundary, host your own broker — see [Future hardening](#future-hardening).
 
@@ -57,16 +54,16 @@ Every other place in the frontend imports from here, so changing the namespace i
 
 ### 2. Filter at ingest — `frontend/src/components/molecules/DaRuntimeConnector.tsx`
 
-This component holds the live socket connection to the kit broker. On every `list-all-kits-result` event:
+This component holds the live socket connection to the runtime broker (`kit.digitalauto.tech`). On every list-all-runtimes event:
 
-- It first hard-blocks any kit whose `kit_id` matches a `PUBLIC_RUNTIME_PREFIXES` entry, **regardless** of the caller-supplied `targetPrefix` prop. This is a defense-in-depth measure: even a future caller that forgets to set `targetPrefix` can never accidentally surface public runtimes.
-- It then applies the caller's `targetPrefix` (default: `BGSW_RUNTIME_PREFIX`) to retain only matching kits.
+- It first hard-blocks any runtime whose ID matches a `PUBLIC_RUNTIME_PREFIXES` entry, **regardless** of the caller-supplied `targetPrefix` prop. This is a defense-in-depth measure: even a future caller that forgets to set `targetPrefix` can never accidentally surface public runtimes.
+- It then applies the caller's `targetPrefix` (default: `BGSW_RUNTIME_PREFIX`) to retain only matching runtimes.
 
-The non-deploy `useEffect` that builds the dropdown list now displays **every** surviving (BGSW-namespaced) kit; the previous public-runtime padding logic was removed, since padding with public kits would defeat the namespace.
+The non-deploy `useEffect` that builds the dropdown list now displays **every** surviving (BGSW-namespaced) runtime; the previous public-runtime padding logic was removed, since padding with public runtimes would defeat the namespace.
 
 ### 3. Default prefix at the call site — `frontend/src/components/molecules/dashboard/DaRuntimeControl.tsx`
 
-Both `<DaRuntimeConnector>` mount points (the custom-kit-server branch and the default branch) pass `targetPrefix={BGSW_RUNTIME_PREFIX}` instead of the upstream literal `"runtime-"`.
+Both `<DaRuntimeConnector>` mount points (the custom-broker branch and the default branch) pass `targetPrefix={BGSW_RUNTIME_PREFIX}` instead of the upstream literal `"runtime-"`.
 
 ### 4. Asset-creation guardrail — `frontend/src/components/organisms/RuntimeAssetManager.tsx`
 
@@ -107,8 +104,8 @@ docker run -d \
 ### Verifying it appears
 
 1. **Container is alive**: `docker ps` — `docker run -d` returns a container ID even if the container crashes seconds later, so always verify it's actually running.
-2. **Registration log line**: `docker logs <id> --tail 50` — look for a line containing your `kit_id`, e.g. `bgsw-runtime-MyRuntime`.
-3. **Broker has it**: in the browser, open **DevTools → Network → WS**, click the `kit.digitalauto.tech` socket, and search the message frames for `bgsw-runtime-MyRuntime`. If it's in a `list-all-kits-result` frame, the dropdown will list it after a refresh.
+2. **Registration log line**: `docker logs <id> --tail 50` — look for a line containing your **runtime ID**, e.g. `bgsw-runtime-MyRuntime`.
+3. **Broker has it**: in the browser, open **DevTools → Network → WS**, click the `kit.digitalauto.tech` socket, and search the message frames for `bgsw-runtime-MyRuntime`. If the broker is broadcasting it, the dropdown will list it after a refresh.
 
 ---
 
@@ -118,7 +115,7 @@ docker run -d \
 
 The image concatenates `RUNTIME_PREFIX + RUNTIME_NAME` literally — there is no separator inserted between them. So:
 
-| `RUNTIME_PREFIX` | `RUNTIME_NAME` | Resulting `kit_id`         | Visible in BGSW UI? |
+| `RUNTIME_PREFIX` | `RUNTIME_NAME` | Resulting runtime ID       | Visible in BGSW UI? |
 |---|---|---|---|
 | `bgsw-runtime-`  | `MyRuntime`    | `bgsw-runtime-MyRuntime`   | yes |
 | `bgsw-runtime`   | `MyRuntime`    | `bgsw-runtimeMyRuntime`    | no — filtered out |
@@ -128,13 +125,13 @@ If the dropdown stays empty after starting your container, the missing trailing 
 
 ### "Asset record" is not the same as "runtime is online"
 
-Adding an asset via the **Add new asset** form only registers the name in the BGSW backend's MongoDB. It does **not** spin up a runtime container. The dropdown only lists kits that are actually connected to the broker.
+Adding an asset via the **Add new asset** form only registers the name in the BGSW backend's MongoDB. It does **not** spin up a runtime container. The dropdown only lists runtimes that are actually connected to the broker.
 
-In other words: the asset record is metadata, the running container is what populates the UI. You can register an asset for a name that doesn't exist yet, and you can have a runtime appear in the UI without ever registering an asset (as long as its `kit_id` starts with `bgsw-runtime-`).
+In other words: the asset record is metadata, the running container is what populates the UI. You can register an asset for a name that doesn't exist yet, and you can have a runtime appear in the UI without ever registering an asset (as long as its runtime ID starts with `bgsw-runtime-`).
 
 ### Stale local-storage `last-rt`
 
-If a previously selected runtime had a non-BGSW `kit_id`, the connector may still try to auto-select it from `localStorage`. Clearing the `last-rt` key in DevTools fixes this on the rare occasion it matters.
+If a previously selected runtime had a non-BGSW runtime ID, the connector may still try to auto-select it from `localStorage`. Clearing the `last-rt` key in DevTools fixes this on the rare occasion it matters.
 
 ---
 
@@ -145,7 +142,7 @@ If a previously selected runtime had a non-BGSW `kit_id`, the connector may stil
 | `backend/.env` | modified | `PORT=3201` and `MONGODB_URL=mongodb://localhost:27017/autowrx` to match the Vite dev proxy and a standard local Mongo install. |
 | `frontend/.env` | modified | `VITE_SERVER_BASE_URL=http://localhost:3201` to match the backend port. |
 | `frontend/src/const/runtime.ts` | **new** | Single source of truth for the namespace constants and helpers. |
-| `frontend/src/components/molecules/DaRuntimeConnector.tsx` | modified | Hard-blocks public/shared kits at ingest, removes public-runtime padding. |
+| `frontend/src/components/molecules/DaRuntimeConnector.tsx` | modified | Hard-blocks public/shared runtimes at ingest, removes public-runtime padding. |
 | `frontend/src/components/molecules/dashboard/DaRuntimeControl.tsx` | modified | Passes `BGSW_RUNTIME_PREFIX` to both `DaRuntimeConnector` mount points. |
 | `frontend/src/components/organisms/RuntimeAssetManager.tsx` | modified | Enforces the `bgsw-runtime-<suffix>` shape on new asset creation. |
 
@@ -155,10 +152,10 @@ If a previously selected runtime had a non-BGSW `kit_id`, the connector may stil
 
 The current implementation is a UI-level boundary. To make it stronger:
 
-- **Self-host the kit broker**. Stand up your own Socket.IO broker (e.g. as a service in `instance-setup/`) and point both the runtime container's `SYNCER_SERVER_URL` and the frontend's `RUNTIME_SERVER_URL` site-config (Admin → Site Config) at it. This converts the namespace into a real network boundary — public-playground runtimes literally cannot reach the BGSW broker.
-- **Empty-state hint in the runtime dropdown**. When no `bgsw-runtime-*` kit is online, render an inline tip with a click-to-copy `docker run` snippet. This prevents the most common new-user confusion ("I added an asset, why is the dropdown still empty?").
+- **Self-host the runtime broker**. Stand up your own Socket.IO broker (e.g. as a service in `instance-setup/`) and point both the runtime container's `SYNCER_SERVER_URL` and the frontend's `RUNTIME_SERVER_URL` site-config (Admin → Site Config) at it. This converts the namespace into a real network boundary — public-playground runtimes literally cannot reach the BGSW broker.
+- **Empty-state hint in the runtime dropdown**. When no `bgsw-runtime-*` runtime is online, render an inline tip with a click-to-copy `docker run` snippet. This prevents the most common new-user confusion ("I added an asset, why is the dropdown still empty?").
 - **Server-side validation of asset names**. Currently the `bgsw-runtime-*` naming convention is enforced only in the frontend. Adding a Mongoose validator on the `assets` collection would prevent a custom client from registering off-namespace names.
-- **End-to-end test**. A Playwright test that boots a `sdv-runtime` container with a `runtime-public-*` `kit_id` and asserts the BGSW dropdown stays empty would lock the namespace contract in CI.
+- **End-to-end test**. A Playwright test that boots a `sdv-runtime` container with a `runtime-public-*` runtime ID and asserts the BGSW dropdown stays empty would lock the namespace contract in CI.
 
 ---
 

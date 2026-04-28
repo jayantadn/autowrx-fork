@@ -26,7 +26,7 @@ The platform uses a dynamic component architecture that enables plugin-provided 
 
 ## BGSW Runtime Namespace Isolation
 
-This BGSW instance ships with a frontend-only namespace boundary that hides runtimes belonging to the public `digital.auto` playground and only surfaces runtimes that belong to BGSW (`bgsw-runtime-*`). To make a runtime appear, run an `eclipse-autowrx/sdv-runtime` container with `RUNTIME_PREFIX="bgsw-runtime-"` (the trailing dash matters).
+This BGSW instance ships with a frontend namespace boundary that hides runtimes belonging to the public `digital.auto` playground and only surfaces runtimes that belong to BGSW (`bgsw-runtime-*`). To make a runtime appear, run an `eclipse-autowrx/sdv-runtime` container with `RUNTIME_PREFIX="bgsw-runtime-"` (the trailing dash matters).
 
 For the full rationale, the list of modified files, the exact `docker run` command, verification steps, common pitfalls, and the future-hardening roadmap, see the dedicated guide:
 

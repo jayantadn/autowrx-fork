@@ -39,6 +39,7 @@ import DaMockManager from './DaMockManager'
 import PrototypeVarsWatch from './PrototypeVarsWatch'
 import DaRemoteCompileRust from '../remote-compiler/DaRemoteCompileRust'
 import { useSystemUI } from '@/hooks/useSystemUI'
+import { BGSW_RUNTIME_PREFIX } from '@/const/runtime'
 
 const DEFAULT_KIT_SERVER = 'https://kit.digitalauto.tech'
 
@@ -384,7 +385,7 @@ const DaRuntimeControl: FC = () => {
             </label>
             {customKitServer && customKitServer.trim().length > 0 ? (
               <DaRuntimeConnector
-                targetPrefix="runtime-"
+                targetPrefix={BGSW_RUNTIME_PREFIX}
                 kitServerUrl={customKitServer}
                 ref={runTimeRef}
                 usedAPIs={usedApis}
@@ -401,7 +402,7 @@ const DaRuntimeControl: FC = () => {
               />
             ) : (
               <DaRuntimeConnector
-                targetPrefix="runtime-"
+                targetPrefix={BGSW_RUNTIME_PREFIX}
                 kitServerUrl={runtimeServerUrl}
                 ref={runTimeRef1}
                 usedAPIs={usedApis}

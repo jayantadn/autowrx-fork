@@ -58,6 +58,10 @@ const envVarsSchema = Joi.object()
     // OpenAI,
     OPENAI_API_KEY: Joi.string().description('OpenAI API key'),
     OPENAI_ENDPOINT_URL: Joi.string().description('OpenAI endpoint url'),
+    // Azure OpenAI,
+    AZURE_OPENAI_ENDPOINT: Joi.string().description('Azure OpenAI endpoint'),
+    AZURE_OPENAI_KEY: Joi.string().description('Azure OpenAI key'),
+    AZURE_OPENAI_DEPLOYMENT: Joi.string().description('Azure OpenAI deployment name'),
     STRICT_AUTH: Joi.boolean().description('Strict auth'),
     // Admin emails
     ADMIN_EMAILS: Joi.string().description('Admin emails'),
@@ -180,6 +184,11 @@ const config = {
   openai: {
     apiKey: envVars.OPENAI_API_KEY,
     endpointUrl: envVars.OPENAI_ENDPOINT_URL,
+  },
+  azureOpenai: {
+    endpoint: envVars.AZURE_OPENAI_ENDPOINT,
+    key: envVars.AZURE_OPENAI_KEY,
+    deployment: envVars.AZURE_OPENAI_DEPLOYMENT,
   },
   aws: {
     publicKey: envVars.AWS_PUBLIC_KEY,

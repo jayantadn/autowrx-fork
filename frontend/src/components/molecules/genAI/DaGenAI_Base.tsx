@@ -29,6 +29,7 @@ import {
   TbLoader,
 } from 'react-icons/tb'
 import { useAssets } from '@/hooks/useAssets'
+import { generateCode } from '@/services/openai.service'
 
 type DaGenAI_BaseProps = {
   type: 'GenAI_Python' | 'GenAI_Dashboard' | 'GenAI_Widget'
@@ -57,27 +58,28 @@ const DaGenAI_Base = ({
   const [addonsLoaded, setAddonsLoaded] = useState<boolean>(false)
   const { data: marketplaceAddOns } = useListMarketplaceAddOns(type)
   const [canUseGenAI] = usePermissionHook([PERMISSIONS.USE_GEN_AI])
-  const [hasGenAIAssets, setHasGenAIAssets] = useState(false)
+  const [hasGenAIAssets, setHasGenAIAssets] = useState(true)
   const timeouts = useRef<NodeJS.Timeout[]>([])
   const [copied, setCopied] = useState(false)
   
   // Initialize built-in addons immediately for GenAI_Python
   const [builtInAddOns, setBuiltInAddOns] = useState<AddOn[]>(() => {
     if (type === 'GenAI_Python') {
-      // Create default SDV Copilot immediately, endpoint will be loaded from GENAI_SDV_APP_ENDPOINT config
+      // Create Azure Open AI addon - points to our backend
       return [{
-        id: 'sdv-copilot-builtin',
+        id: 'azure-openai-builtin',
         type: 'GenAI_Python' as const,
-        name: 'SDV Copilot',
-        description: 'Support develop basic SDV Python App',
+        name: 'Azure Open AI',
+        description: 'Generate SDV Python code using Azure Open AI',
         apiKey: 'Empty',
-        endpointUrl: '', // Will be loaded from config
+        endpointUrl: 'http://localhost:3201/v2/ai/generate-code',
         customPayload: (prompt: string) => ({ prompt }),
         method: 'POST',
         requestField: 'prompt',
-        responseField: 'data',
+        responseField: 'code',
       }]
     }
+    // For other types, return empty array
     return []
   })
 
@@ -270,32 +272,41 @@ const DaGenAI_Base = ({
             break
           case 'post':
             try {
-              const payload = {
-                systemMessage: selectedAddOn.samples || '',
-              } as any
-              payload[selectedAddOn.requestField || 'prompt'] = prompt
-
-              const response = await axios.post(
-                selectedAddOn.endpointUrl,
-                payload,
-                {
-                  headers: {
-                    Authorization: `${selectedAddOn.apiKey}`,
-                    'Content-Type': 'application/json',
-                  },
-                },
-              )
-              if (
-                response.data &&
-                response.data[selectedAddOn.responseField || 'data']
-              ) {
-                onCodeGenerated(
-                  response.data[selectedAddOn.responseField || 'data'],
-                )
+              // Use our service for code generation
+              if (selectedAddOn.endpointUrl.includes('/v2/ai/generate-code')) {
+                const code = await generateCode(prompt)
+                onCodeGenerated(code)
               } else {
-                onCodeGenerated(
-                  `Error: Receive incorrect format data\r\n${JSON.stringify(response.data, null, 4)}`,
+                // Original logic for other endpoints
+                const payload = {
+                  systemMessage: selectedAddOn.samples || '',
+                } as any
+                payload[selectedAddOn.requestField || 'prompt'] = prompt
+
+                const headers: any = {
+                  'Content-Type': 'application/json',
+                }
+                if (selectedAddOn.apiKey && selectedAddOn.apiKey !== 'Empty') {
+                  headers.Authorization = selectedAddOn.apiKey
+                }
+
+                const response = await axios.post(
+                  selectedAddOn.endpointUrl,
+                  payload,
+                  { headers },
                 )
+                if (
+                  response.data &&
+                  response.data[selectedAddOn.responseField || 'data']
+                ) {
+                  onCodeGenerated(
+                    response.data[selectedAddOn.responseField || 'data'],
+                  )
+                } else {
+                  onCodeGenerated(
+                    `Error: Receive incorrect format data\r\n${JSON.stringify(response.data, null, 4)}`,
+                  )
+                }
               }
             } catch (err) {
               console.log(err)

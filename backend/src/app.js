@@ -18,6 +18,7 @@ const config = require('./config/config');
 const morgan = require('./config/morgan');
 const { jwtStrategy } = require('./config/passport');
 const routesV2 = require('./routes/v2');
+const openaiRoutes = require('./routes/openai.routes');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 const { setupProxy } = require('./config/proxyHandler');
@@ -98,6 +99,8 @@ app.use(
   cors({
     origin: config.cors.origins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'api-key'],
   })
 );
 app.options('*', cors({
@@ -113,6 +116,11 @@ passport.use('jwt', jwtStrategy);
 const loadAuthConfigs = require('./middlewares/authConfig');
 app.use(loadAuthConfigs);
 
+// AI Routes first  
+app.use('/v2/ai', openaiRoutes);
+console.log('Loaded /v2/ai routes');
+
+// Then V2 routes
 app.use('/v2', routesV2);
 app.use('/static', express.static(path.join(__dirname, '../static')));
 app.use('/imgs', express.static(path.join(__dirname, '../static/frontend-dist/imgs')));

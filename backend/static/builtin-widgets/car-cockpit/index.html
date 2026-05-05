@@ -768,11 +768,26 @@
       `;
     }
 
-    window.onWidgetLoaded = async () => { meeting = await load(); draw(); };
+    // Configurable signals (overridable via widget options).
+    let SPEED_SIGNAL = 'Vehicle.Speed';
+    let LIGHTS_SIGNAL = 'Vehicle.Body.Lights.Beam.Low.IsOn';
+
+    window.onWidgetLoaded = async (options) => {
+      if (options) {
+        if (options.speedSignal) SPEED_SIGNAL = options.speedSignal;
+        if (options.lightsSignal) LIGHTS_SIGNAL = options.lightsSignal;
+      }
+      try {
+        const v = (typeof getApiValue === 'function') ? getApiValue(SPEED_SIGNAL) : undefined;
+        if (v !== undefined && v !== null) speed = parseFloat(v) || 0;
+      } catch (e) {}
+      meeting = await load();
+      draw();
+    };
     window.onVssSync = d => {
-      if (d['Vehicle.Speed'] !== undefined) { speed = parseFloat(d['Vehicle.Speed'])||0; draw(); }
-      if (d['Vehicle.Body.Lights.Beam.Low.IsOn'] !== undefined) {
-        const on = d['Vehicle.Body.Lights.Beam.Low.IsOn'];
+      if (d[SPEED_SIGNAL] !== undefined) { speed = parseFloat(d[SPEED_SIGNAL])||0; draw(); }
+      if (d[LIGHTS_SIGNAL] !== undefined) {
+        const on = d[LIGHTS_SIGNAL];
         speed = (on===true||on==='true'||on===1) ? 60 : 0;
         draw();
       }

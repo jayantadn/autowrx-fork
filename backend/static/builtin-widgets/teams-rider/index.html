@@ -595,6 +595,369 @@
     .empty-icon svg { width: 20px; height: 20px; opacity: 0.4; }
     .empty-text { font-size: 11px; }
 
+    /* ===== Ride Dashboard (idle state) ===== */
+    .ride-dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 4px;
+      flex: 1;
+    }
+    .ride-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .ride-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .ride-card-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: rgba(255,255,255,0.45);
+      font-weight: 600;
+    }
+    .ride-card-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+    .ride-card-value .unit {
+      font-size: 9px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+    }
+    .ride-card-bar {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+    .ride-card-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e 0%, #84cc16 100%);
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+    .ride-card-bar-fill.warn {
+      background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+    }
+    .ride-standby {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: rgba(88,101,242,0.10);
+      border: 1px solid rgba(88,101,242,0.25);
+      border-radius: 8px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.7);
+    }
+    .ride-standby .standby-icon {
+      width: 14px; height: 14px;
+      color: #5865F2;
+      flex-shrink: 0;
+    }
+    .ride-standby .standby-icon svg { width: 14px; height: 14px; }
+    .ride-standby .standby-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34,197,94,0.7);
+      margin-left: auto;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .ride-pills {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .ride-pill {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 7px 8px;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s ease;
+    }
+    .ride-pill:hover { background: rgba(255,255,255,0.10); }
+    .ride-pill.primary {
+      background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+      border-color: transparent;
+    }
+    .ride-pill.primary:hover { filter: brightness(1.1); }
+    .ride-pill.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .ride-pill svg { width: 12px; height: 12px; }
+
+    /* ===== 3-button incoming actions + safety states ===== */
+    .incoming-btn.switch-device {
+      background: rgba(88,101,242,0.95);
+      color: #fff;
+    }
+    .incoming-actions.three-btn {
+      gap: 14px;
+    }
+    .incoming-btn.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+      position: relative;
+    }
+    .incoming-btn.locked::after {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 2px solid rgba(239,68,68,0.7);
+      transform: rotate(-45deg);
+      pointer-events: none;
+    }
+    .incoming-btn.locked::before {
+      content: '';
+      position: absolute;
+      width: 60%;
+      height: 2px;
+      background: rgba(239,68,68,0.85);
+      transform: rotate(45deg);
+      pointer-events: none;
+    }
+    .incoming-btn.recommended {
+      animation: rec-pulse 1.4s ease-in-out infinite;
+      box-shadow: 0 0 0 0 rgba(88,101,242,0.7);
+    }
+    @keyframes rec-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(88,101,242,0.6); }
+      50%      { box-shadow: 0 0 0 8px rgba(88,101,242,0); }
+    }
+    .incoming-safety-banner {
+      width: 90%;
+      margin: 0 auto 8px auto;
+      padding: 5px 8px;
+      font-size: 9px;
+      font-weight: 600;
+      text-align: center;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+    .incoming-safety-banner.ok    { background: rgba(34,197,94,0.18);  color: #4ade80; border: 1px solid rgba(34,197,94,0.4); }
+    .incoming-safety-banner.warn  { background: rgba(245,158,11,0.18); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); }
+    .incoming-safety-banner.block { background: rgba(239,68,68,0.20);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.45); }
+
+    /* "Recommended" tag in device picker */
+    .device-btn.recommended {
+      border-color: rgba(88,101,242,0.7);
+      background: rgba(88,101,242,0.18);
+      box-shadow: 0 0 0 0 rgba(88,101,242,0.6);
+      animation: rec-pulse 1.6s ease-in-out infinite;
+    }
+    .device-btn .rec-tag {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: #5865F2;
+      color: #fff;
+      font-size: 7px;
+      font-weight: 800;
+      padding: 2px 4px;
+      border-radius: 4px;
+      letter-spacing: 0.4px;
+    }
+    .device-btn { position: relative; }
+
+    /* Ride-mode safety hint on idle dashboard */
+    .ride-safety-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .ride-safety-hint.ok    { background: rgba(34,197,94,0.10);  color: #86efac; border: 1px solid rgba(34,197,94,0.25); }
+    .ride-safety-hint.warn  { background: rgba(245,158,11,0.10); color: #fcd34d; border: 1px solid rgba(245,158,11,0.30); }
+    .ride-safety-hint.block { background: rgba(239,68,68,0.12);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
+    .ride-safety-hint .ride-mode-pip {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+      flex-shrink: 0;
+    }
+
+    /* In-call speed warning + handoff suggestion */
+    .call-speed-warning {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      margin-top: 6px;
+      background: rgba(239,68,68,0.18);
+      border: 1px solid rgba(239,68,68,0.45);
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 600;
+      color: #fca5a5;
+    }
+    .call-speed-warning button {
+      margin-left: auto;
+      background: rgba(255,255,255,0.95);
+      color: #1a1a1a;
+      border: none;
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .ctrl-btn.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+
+    /* ===== Device picker overlay ===== */
+    .device-picker-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(15,18,28,0.96) 0%, rgba(10,10,15,0.98) 100%);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      z-index: 25;
+    }
+    .device-picker-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+    .device-picker-sub {
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .device-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      flex: 1;
+    }
+    .device-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 10px 8px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .device-btn:hover {
+      background: rgba(88,101,242,0.18);
+      border-color: rgba(88,101,242,0.5);
+      transform: scale(1.03);
+    }
+    .device-btn svg { width: 22px; height: 22px; }
+    .device-btn span {
+      font-size: 9px;
+      font-weight: 600;
+    }
+    .device-picker-cancel {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 6px;
+      color: rgba(255,255,255,0.7);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .device-picker-cancel:hover {
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+    }
+
+    /* ===== Device chosen confirmation ===== */
+    .device-confirm-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(34,197,94,0.10) 0%, rgba(10,10,15,0.96) 100%);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 25;
+      gap: 8px;
+    }
+    .device-confirm-icon {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.2);
+      color: #22c55e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pop 0.3s ease;
+    }
+    .device-confirm-icon svg { width: 22px; height: 22px; }
+    @keyframes pop {
+      0% { transform: scale(0); }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    .device-confirm-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .device-confirm-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+    }
+
     .loading {
       width: 100%; height: 100%;
       display: flex;
@@ -619,7 +982,7 @@
   <script>
     const API = window.location.origin;
 
-    // State: 'idle' | 'joining' | 'in_meeting' | 'incoming' | 'in_call'
+    // State: 'idle' | 'joining' | 'in_meeting' | 'incoming' | 'in_call' | 'picking_device' | 'device_chosen'
     let state = 'idle';
     let speed = 0;
     let now = new Date();
@@ -631,6 +994,20 @@
     let callTimer = null;
     let isMuted = false;
     let participants = 3;
+
+    // Ride dashboard data (idle state)
+    let battery = 78;
+    let rangeKm = 142;
+    let tripKm = 23.4;
+
+    // Device handoff
+    let chosenDevice = null;
+    let deviceConfirmTimer = null;
+
+    // Auto-call demo
+    let autoCallTimer = null;
+    let autoCallFired = false;
+    let lastIncomingSignalValue = false;
 
     const mockCallers = [
       { id: '1', name: 'Rajesh Kumar', title: 'Engineering Manager' },
@@ -656,6 +1033,22 @@
       calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>`,
       helmet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12v5c0 1.66 1.34 3 3 3h2v-7H4.5C4.5 8.5 8 5 12 5s7.5 3.5 7.5 8H17v7h2c1.66 0 3-1.34 3-3v-5c0-5.52-4.48-10-10-10z"/></svg>`,
       users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+      battery: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="18" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg>`,
+      route: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M6 16V8a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4"/></svg>`,
+      music: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+      laptop: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`,
+      mobile: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
+      tablet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
+      watch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"/><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"/></svg>`,
+      devices: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="14" height="10" rx="1.5"/><rect x="14" y="9" width="8" height="11" rx="1.5"/></svg>`,
+      check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+    };
+
+    const DEVICES = {
+      laptop:     { id: 'laptop',     label: 'Laptop',     icon: 'laptop' },
+      phone:      { id: 'phone',      label: 'Phone',      icon: 'mobile' },
+      tablet:     { id: 'tablet',     label: 'Tablet',     icon: 'tablet' },
+      smartwatch: { id: 'smartwatch', label: 'Smartwatch', icon: 'watch' },
     };
 
     function getRideMode(spd) {
@@ -665,8 +1058,54 @@
       return { name: 'HIGHWAY', color: '#ef4444' };
     }
 
-    function canJoinMeeting(spd) { return spd <= 0; }
-    function canAnswerCall(spd) { return spd < 60; }
+    /**
+     * Single source of truth for safety gating. Every UI control reads from here.
+     * - severity: 'ok' | 'warn' | 'block' (drives banner / hint colour)
+     * - canAnswer: lock/unlock the green Answer button on incoming calls
+     * - canJoin: lock/unlock the calendar Join Meeting button
+     * - canVideo: video features (kept for future; rider widget is audio-only today)
+     * - canManualMute: allow rider to toggle mute (highway forces mute)
+     * - autoMuteOnAnswer: mute mic the moment the call connects
+     * - recommendHandoff: pulse the "Other" device button + flag laptop in picker
+     * - forceHandoff: HIGHWAY-grade rule — answering is denied; only handoff/decline allowed
+     * - hint: short text shown on incoming overlay + idle dashboard
+     */
+    function getSafetyRules(spd) {
+      const mode = getRideMode(spd);
+      if (spd <= 0) {
+        return {
+          mode, severity: 'ok',
+          canAnswer: true, canJoin: true, canVideo: true, canManualMute: true,
+          autoMuteOnAnswer: false, recommendHandoff: false, forceHandoff: false,
+          hint: 'Stopped · all controls available',
+        };
+      }
+      if (spd <= 30) {
+        return {
+          mode, severity: 'ok',
+          canAnswer: true, canJoin: false, canVideo: false, canManualMute: true,
+          autoMuteOnAnswer: false, recommendHandoff: false, forceHandoff: false,
+          hint: 'City · voice calls OK · stop to join meetings',
+        };
+      }
+      if (spd <= 60) {
+        return {
+          mode, severity: 'warn',
+          canAnswer: true, canJoin: false, canVideo: false, canManualMute: true,
+          autoMuteOnAnswer: true, recommendHandoff: true, forceHandoff: false,
+          hint: 'Urban · voice only · auto-mute on answer · handoff suggested',
+        };
+      }
+      return {
+        mode, severity: 'block',
+        canAnswer: false, canJoin: false, canVideo: false, canManualMute: false,
+        autoMuteOnAnswer: true, recommendHandoff: true, forceHandoff: true,
+        hint: 'Highway · answering blocked · transfer to another device',
+      };
+    }
+
+    function canJoinMeeting(spd) { return getSafetyRules(spd).canJoin; }
+    function canAnswerCall(spd) { return getSafetyRules(spd).canAnswer; }
 
     function formatTime(d) {
       const h = d.getHours(), m = String(d.getMinutes()).padStart(2, '0');
@@ -737,23 +1176,91 @@
     }
 
     function simulateIncomingCall() {
-      console.log('[Teams Rider] simulateIncomingCall called');
+      console.log('[Teams Rider] simulateIncomingCall called, current state:', state);
+      // Only allow ringing when not already busy with a call/meeting/picker
+      if (state !== 'idle' && state !== 'device_chosen') {
+        console.log('[Teams Rider] Ignoring incoming call - busy in state:', state);
+        return;
+      }
       const caller = mockCallers[Math.floor(Math.random() * mockCallers.length)];
       incomingCall = { ...caller };
       state = 'incoming';
+      // Cancel any pending auto-call once a call is in progress
+      if (autoCallTimer) { clearTimeout(autoCallTimer); autoCallTimer = null; }
       console.log('[Teams Rider] State changed to incoming, caller:', caller.name);
       draw();
     }
 
+    function openDevicePicker() {
+      console.log('[Teams Rider] openDevicePicker called');
+      state = 'picking_device';
+      draw();
+    }
+
+    function cancelDevicePicker() {
+      console.log('[Teams Rider] cancelDevicePicker called');
+      // If we still have an incoming call, return to ringing; otherwise idle.
+      state = incomingCall ? 'incoming' : 'idle';
+      draw();
+    }
+
+    function pickDevice(deviceId) {
+      const device = DEVICES[deviceId];
+      if (!device) {
+        console.warn('[Teams Rider] Unknown device:', deviceId);
+        return;
+      }
+      console.log('[Teams Rider] pickDevice:', device.label);
+      chosenDevice = device;
+      // Clear the incoming call (it's been transferred to another device)
+      incomingCall = null;
+      state = 'device_chosen';
+
+      // Emit signal so other widgets can mirror the handoff (best-effort).
+      try {
+        if (typeof setApiValue === 'function' && CALL_TARGET_DEVICE_SIGNAL) {
+          setApiValue(CALL_TARGET_DEVICE_SIGNAL, device.id);
+        }
+      } catch (e) { console.warn('[Teams Rider] setApiValue failed:', e); }
+
+      draw();
+
+      if (deviceConfirmTimer) clearTimeout(deviceConfirmTimer);
+      deviceConfirmTimer = setTimeout(() => {
+        chosenDevice = null;
+        state = 'idle';
+        draw();
+      }, 2200);
+    }
+
+    function scheduleAutoCall() {
+      if (autoCallFired) return;
+      if (autoCallTimer) clearTimeout(autoCallTimer);
+      if (!AUTO_CALL_AFTER_MS || AUTO_CALL_AFTER_MS <= 0) return;
+      console.log('[Teams Rider] scheduleAutoCall in', AUTO_CALL_AFTER_MS, 'ms');
+      autoCallTimer = setTimeout(() => {
+        if (state === 'idle' && !autoCallFired) {
+          autoCallFired = true;
+          simulateIncomingCall();
+        }
+      }, AUTO_CALL_AFTER_MS);
+    }
+
     function answerCall() {
-      console.log('[Teams Rider] answerCall called, speed:', speed, 'canAnswer:', canAnswerCall(speed));
-      if (!canAnswerCall(speed)) {
-        console.log('[Teams Rider] Cannot answer - speed too high');
+      const rules = getSafetyRules(speed);
+      console.log('[Teams Rider] answerCall called, speed:', speed, 'rules:', rules);
+      if (!rules.canAnswer) {
+        console.log('[Teams Rider] Cannot answer - safety rule blocks (mode:', rules.mode.name, ')');
         return;
       }
       activeCall = { ...incomingCall };
       incomingCall = null;
       state = 'in_call';
+      // Apply auto-mute when speed dictates (URBAN+).
+      if (rules.autoMuteOnAnswer) {
+        isMuted = true;
+        console.log('[Teams Rider] Auto-muted on answer due to', rules.mode.name);
+      }
       console.log('[Teams Rider] State changed to in_call');
       callStartTime = Date.now();
       callTimer = setInterval(() => {
@@ -771,7 +1278,31 @@
     }
 
     function toggleMute() {
+      const rules = getSafetyRules(speed);
+      // On HIGHWAY, mute is force-locked ON (rider cannot un-mute).
+      if (!rules.canManualMute) {
+        console.log('[Teams Rider] Mute toggle blocked by safety rules (', rules.mode.name, ')');
+        if (!isMuted) { isMuted = true; draw(); }
+        return;
+      }
       isMuted = !isMuted;
+      draw();
+    }
+
+    /**
+     * Mid-call handoff trigger. Reuses the device picker UI. We stash the active
+     * call as the "incoming" payload so the picker has caller context, and the
+     * existing pickDevice() flow will end the call + show confirmation.
+     */
+    function handoffActiveCall() {
+      if (!activeCall) return;
+      console.log('[Teams Rider] handoffActiveCall - opening device picker mid-call');
+      // Stop the call timer; the call is being moved off the bike.
+      if (callTimer) { clearInterval(callTimer); callTimer = null; }
+      incomingCall = { ...activeCall };
+      activeCall = null;
+      callDuration = '00:00';
+      state = 'picking_device';
       draw();
     }
 
@@ -794,10 +1325,11 @@
 
     function draw() {
       const el = document.getElementById('app');
-      const mode = getRideMode(speed);
+      const rules = getSafetyRules(speed);
+      const mode = rules.mode;
       const speedPct = Math.min(75, (speed / 120) * 75);
-      const canJoin = canJoinMeeting(speed);
-      const canAnswer = canAnswerCall(speed);
+      const canJoin = rules.canJoin;
+      const canAnswer = rules.canAnswer;
       const mt = meeting?.start ? formatTimeUntil(meeting.start) : '--';
 
       let teamsContent = '';
@@ -835,10 +1367,12 @@
           </div>
         `;
       } else if (state === 'in_call' && activeCall) {
+        // If speed climbs into HIGHWAY mid-call, surface a transfer suggestion.
+        const showSpeedWarning = rules.forceHandoff;
         teamsContent = `
           <div class="call-active">
             <div class="call-header">
-              <div class="call-status">● Audio Call</div>
+              <div class="call-status">● Audio Call ${isMuted && !rules.canManualMute ? '· MIC LOCKED' : ''}</div>
               <div class="call-timer">${callDuration}</div>
             </div>
             <div class="caller-info">
@@ -847,55 +1381,55 @@
               <div class="caller-title">${activeCall.title || ''}</div>
             </div>
             <div class="call-controls">
-              <button class="ctrl-btn mute ${isMuted ? 'active' : ''}" data-action="toggle-mute">${isMuted ? svg.micOff : svg.mic}</button>
+              <button class="ctrl-btn mute ${isMuted ? 'active' : ''} ${!rules.canManualMute ? 'locked' : ''}" data-action="toggle-mute" title="${!rules.canManualMute ? 'Mute locked at highway speed' : (isMuted ? 'Unmute' : 'Mute')}">${isMuted ? svg.micOff : svg.mic}</button>
               <button class="ctrl-btn end" data-action="end-call">${svg.phoneOff}</button>
             </div>
-          </div>
-        `;
-      } else if (meeting) {
-        teamsContent = `
-          <div class="teams-header">
-            <div class="teams-logo">${svg.teams}</div>
-            <div class="teams-info">
-              <div class="teams-title">Microsoft Teams</div>
-              <div class="teams-sub">Rider View</div>
-            </div>
-          </div>
-          <div class="meeting-info">
-            <div class="meeting-subject">${meeting.subject || 'Team Meeting'}</div>
-            <div class="meeting-time">
-              <span class="time-big">${mt}</span>
-              <span class="time-label">min</span>
-            </div>
-            ${meeting.organizer?.name ? `<div class="meeting-host">by ${meeting.organizer.name}</div>` : ''}
-          </div>
-          <div class="action-row">
-            <button class="action-btn ${canJoin ? 'primary' : 'disabled'}" data-action="join-meeting">${svg.mic} ${canJoin ? 'Join Meeting' : 'Stop to Join'}</button>
-            <button class="action-btn secondary" data-action="simulate-call">${svg.phone} Simulate</button>
-          </div>
-          <div class="voice-hint">
-            <div class="voice-icon">${svg.mic}</div>
-            <div class="voice-text">
-              <div class="voice-command">"Hey TVS, join meeting"</div>
-              <div class="voice-desc">${canJoin ? 'Voice ready' : 'Stop to enable'}</div>
-            </div>
+            ${showSpeedWarning ? `
+              <div class="call-speed-warning">
+                <span>Speed too high &mdash; transfer recommended</span>
+                <button data-action="handoff-active-call">Transfer</button>
+              </div>
+            ` : ''}
           </div>
         `;
       } else {
+        // ===== Idle state: ride dashboard =====
+        // Default UI shown before any call. When a call comes in, the
+        // .incoming-overlay (rendered below) appears on top of this view.
+        const batteryWarn = battery <= 20;
+        const hasMeeting = !!meeting;
         teamsContent = `
-          <div class="teams-header">
-            <div class="teams-logo">${svg.teams}</div>
-            <div class="teams-info">
-              <div class="teams-title">Microsoft Teams</div>
-              <div class="teams-sub">Rider View</div>
+          <div class="ride-dashboard">
+            <div class="ride-cards">
+              <div class="ride-card">
+                <div class="ride-card-label">Battery</div>
+                <div class="ride-card-value">${Math.round(battery)}<span class="unit">%</span></div>
+                <div class="ride-card-bar">
+                  <div class="ride-card-bar-fill ${batteryWarn ? 'warn' : ''}" style="width:${Math.max(0, Math.min(100, battery))}%"></div>
+                </div>
+              </div>
+              <div class="ride-card">
+                <div class="ride-card-label">Range</div>
+                <div class="ride-card-value">${Math.round(rangeKm)}<span class="unit">km</span></div>
+              </div>
+              <div class="ride-card">
+                <div class="ride-card-label">Trip</div>
+                <div class="ride-card-value">${tripKm.toFixed(1)}<span class="unit">km</span></div>
+              </div>
             </div>
-          </div>
-          <div class="empty-state">
-            <div class="empty-icon">${svg.calendar}</div>
-            <div class="empty-text">No meetings scheduled</div>
-          </div>
-          <div class="action-row" style="margin-top:auto;">
-            <button class="action-btn secondary" data-action="simulate-call">${svg.phone} Simulate Call</button>
+            <div class="ride-standby">
+              <div class="standby-icon">${svg.teams}</div>
+              <span>Microsoft Teams &middot; standby</span>
+              <div class="standby-dot"></div>
+            </div>
+            <div class="ride-safety-hint ${rules.severity}" style="color: ${mode.color};">
+              <span class="ride-mode-pip"></span>
+              <span style="color: rgba(255,255,255,0.85);">${rules.hint}</span>
+            </div>
+            <div class="ride-pills">
+              <button class="ride-pill" data-action="simulate-call">${svg.phone} Simulate call</button>
+              ${hasMeeting ? `<button class="ride-pill ${canJoin ? 'primary' : 'disabled'}" data-action="join-meeting" ${canJoin ? '' : 'title="Stop the bike to join"'}>${svg.calendar} ${canJoin ? 'Join' : `Stop · ${mt}m`}</button>` : ''}
+            </div>
           </div>
         `;
       }
@@ -939,10 +1473,43 @@
                 <div class="incoming-avatar">${getInitials(incomingCall.name)}</div>
                 <div class="incoming-name">${incomingCall.name}</div>
                 <div class="incoming-title">${incomingCall.title || 'Teams Call'}</div>
-                <div class="incoming-actions">
-                  <button class="incoming-btn decline" data-action="decline-call">${svg.phoneOff}<span>Decline</span></button>
-                  <button class="incoming-btn answer" data-action="answer-call">${svg.phone}<span>Answer</span></button>
+                <div class="incoming-safety-banner ${rules.severity}">
+                  ${rules.mode.name} &middot; ${rules.hint}
                 </div>
+                <div class="incoming-actions three-btn">
+                  <button class="incoming-btn decline" data-action="decline-call">${svg.phoneOff}<span>Decline</span></button>
+                  <button class="incoming-btn switch-device ${rules.recommendHandoff ? 'recommended' : ''}" data-action="open-device-picker">${svg.devices}<span>Other</span></button>
+                  <button class="incoming-btn answer ${!rules.canAnswer ? 'locked' : ''}" data-action="answer-call" ${!rules.canAnswer ? `title="Answering blocked at ${Math.round(speed)} km/h"` : ''}>${svg.phone}<span>Answer</span></button>
+                </div>
+              </div>
+            ` : ''}
+
+            ${state === 'picking_device' ? `
+              <div class="device-picker-overlay">
+                <div class="device-picker-title">${rules.forceHandoff ? 'Transfer call to safe device' : 'Switch to other device'}</div>
+                <div class="device-picker-sub">Take this call on:</div>
+                <div class="device-picker-grid">
+                  ${Object.values(DEVICES).map(d => {
+                    // Highlight Laptop on URBAN+ as the safe-handoff target.
+                    const isRecommended = rules.recommendHandoff && d.id === 'laptop';
+                    return `
+                      <button class="device-btn ${isRecommended ? 'recommended' : ''}" data-action="pick-device" data-device-id="${d.id}">
+                        ${isRecommended ? '<span class="rec-tag">SAFE</span>' : ''}
+                        ${svg[d.icon]}
+                        <span>${d.label}</span>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+                <button class="device-picker-cancel" data-action="cancel-device-picker">Cancel</button>
+              </div>
+            ` : ''}
+
+            ${state === 'device_chosen' && chosenDevice ? `
+              <div class="device-confirm-overlay">
+                <div class="device-confirm-icon">${svg.check}</div>
+                <div class="device-confirm-name">${chosenDevice.label}</div>
+                <div class="device-confirm-sub">Call transferred to your ${chosenDevice.label.toLowerCase()}</div>
               </div>
             ` : ''}
           </div>
@@ -950,21 +1517,71 @@
       `;
     }
 
-    window.onWidgetLoaded = async () => {
+    // Configurable signals (overridable via widget options).
+    let SPEED_SIGNAL = 'Vehicle.Speed';
+    let LIGHTS_SIGNAL = 'Vehicle.Body.Lights.Beam.Low.IsOn';
+    let INCOMING_CALL_SIGNAL = 'Vehicle.Cabin.Infotainment.HMI.IsCallIncoming';
+    let CALL_TARGET_DEVICE_SIGNAL = 'Vehicle.Cabin.Infotainment.HMI.CallTargetDevice';
+    let BATTERY_SIGNAL = '';
+    let AUTO_CALL_AFTER_MS = 15000; // 0 disables; positive number = ms until auto-incoming-call
+
+    window.onWidgetLoaded = async (options) => {
+      if (options) {
+        if (options.speedSignal) SPEED_SIGNAL = options.speedSignal;
+        if (options.lightsSignal) LIGHTS_SIGNAL = options.lightsSignal;
+        if (options.incomingCallSignal) INCOMING_CALL_SIGNAL = options.incomingCallSignal;
+        if (options.callTargetDeviceSignal) CALL_TARGET_DEVICE_SIGNAL = options.callTargetDeviceSignal;
+        if (options.batterySignal) BATTERY_SIGNAL = options.batterySignal;
+        if (typeof options.autoCallAfterMs === 'number') AUTO_CALL_AFTER_MS = options.autoCallAfterMs;
+      }
+      try {
+        const v = (typeof getApiValue === 'function') ? getApiValue(SPEED_SIGNAL) : undefined;
+        if (v !== undefined && v !== null) speed = parseFloat(v) || 0;
+        if (BATTERY_SIGNAL) {
+          const b = (typeof getApiValue === 'function') ? getApiValue(BATTERY_SIGNAL) : undefined;
+          if (b !== undefined && b !== null) battery = parseFloat(b) || battery;
+        }
+      } catch (e) {}
       meeting = await loadMeeting() || mockMeeting;
       draw();
+      scheduleAutoCall();
     };
 
     window.onVssSync = (data) => {
       let needsRedraw = false;
-      if (data['Vehicle.Speed'] !== undefined) {
-        speed = parseFloat(data['Vehicle.Speed']) || 0;
+      let speedChanged = false;
+      if (data[SPEED_SIGNAL] !== undefined) {
+        speed = parseFloat(data[SPEED_SIGNAL]) || 0;
         needsRedraw = true;
+        speedChanged = true;
       }
-      if (data['Vehicle.Body.Lights.Beam.Low.IsOn'] !== undefined) {
-        const on = data['Vehicle.Body.Lights.Beam.Low.IsOn'];
+      if (data[LIGHTS_SIGNAL] !== undefined) {
+        const on = data[LIGHTS_SIGNAL];
         speed = (on === true || on === 'true' || on === 1) ? 60 : 0;
         needsRedraw = true;
+        speedChanged = true;
+      }
+      // Mid-call safety enforcement: if speed climbs into URBAN+, force mute on.
+      if (speedChanged && state === 'in_call') {
+        const rules = getSafetyRules(speed);
+        if (rules.autoMuteOnAnswer && !isMuted) {
+          isMuted = true;
+          console.log('[Teams Rider] Mid-call auto-mute applied (', rules.mode.name, ')');
+        }
+      }
+      if (BATTERY_SIGNAL && data[BATTERY_SIGNAL] !== undefined) {
+        const b = parseFloat(data[BATTERY_SIGNAL]);
+        if (!isNaN(b)) { battery = b; needsRedraw = true; }
+      }
+      // Edge-triggered: when IncomingCall flips false -> true, ring the rider.
+      if (INCOMING_CALL_SIGNAL && data[INCOMING_CALL_SIGNAL] !== undefined) {
+        const raw = data[INCOMING_CALL_SIGNAL];
+        const truthy = (raw === true || raw === 'true' || raw === 1 || raw === '1');
+        if (truthy && !lastIncomingSignalValue) {
+          console.log('[Teams Rider] IncomingCall signal rising edge - triggering call');
+          simulateIncomingCall();
+        }
+        lastIncomingSignalValue = truthy;
       }
       if (needsRedraw) draw();
     };
@@ -1014,6 +1631,18 @@
           break;
         case 'cancel-join':
           cancelJoin();
+          break;
+        case 'open-device-picker':
+          openDevicePicker();
+          break;
+        case 'pick-device':
+          pickDevice(btn.getAttribute('data-device-id'));
+          break;
+        case 'cancel-device-picker':
+          cancelDevicePicker();
+          break;
+        case 'handoff-active-call':
+          handoffActiveCall();
           break;
       }
     });

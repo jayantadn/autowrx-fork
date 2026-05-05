@@ -248,41 +248,6 @@ const PrototypeTabCode: FC = () => {
         className="flex h-full flex-1 min-w-0 flex-col border-r bg-white rounded-md"
       >
         <div className="flex min-h-12 w-full items-center justify-between">
-          {isAuthorized && (
-            <div className="flex mx-2 space-x-4">
-              <DaDialog
-                open={isOpenGenAI}
-                onOpenChange={setIsOpenGenAI}
-                trigger={
-                  <Button size="sm">
-                    <BsStars className="mr-1" />
-                    SDV ProtoPilot
-                  </Button>
-                }
-                dialogTitle="SDV ProtoPilot"
-                className="flex flex-col h-[80vh] xl:h-[600px] max-h-[90vh] w-[1200px] max-w-[80vw]"
-                contentContainerClassName="h-full"
-              >
-                <div className="rounded-lg text-sm flex h-full w-full flex-col bg-white">
-                  <Suspense
-                    fallback={
-                      <div className="flex items-center justify-center h-full">
-                        <Spinner />
-                      </div>
-                    }
-                  >
-                    <DaGenAI_Python
-                      onCodeChanged={(code: string) => {
-                        setCode(code)
-                        setIsOpenGenAI(false)
-                      }}
-                    />
-                  </Suspense>
-                </div>
-              </DaDialog>
-            </div>
-          )}
-
           <div className="grow"></div>
 
           <div className="mr-2 text-sm">

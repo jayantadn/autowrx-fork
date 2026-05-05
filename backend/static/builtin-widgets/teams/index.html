@@ -641,8 +641,20 @@
       `;
     }
 
+    // Configurable signals (overridable via widget options).
+    let SPEED_SIGNAL = 'Vehicle.Speed';
+    let LIGHTS_SIGNAL = 'Vehicle.Body.Lights.Beam.Low.IsOn';
+
     window.onWidgetLoaded = async function (options) {
       try {
+        if (options) {
+          if (options.speedSignal) SPEED_SIGNAL = options.speedSignal;
+          if (options.lightsSignal) LIGHTS_SIGNAL = options.lightsSignal;
+        }
+        try {
+          const v = (typeof getApiValue === 'function') ? getApiValue(SPEED_SIGNAL) : undefined;
+          if (v !== undefined && v !== null) vehicleSpeed = parseFloat(v) || 0;
+        } catch (e) {}
         currentMeeting = await fetchMeeting();
         renderWidget();
       } catch (error) {
@@ -651,17 +663,17 @@
     };
 
     window.onVssSync = function (data) {
-      // Vehicle.Speed (sensor)
-      if (data['Vehicle.Speed'] !== undefined) { 
-        vehicleSpeed = parseFloat(data['Vehicle.Speed']) || 0; 
-        renderWidget(); 
+      // Vehicle speed (sensor)
+      if (data[SPEED_SIGNAL] !== undefined) {
+        vehicleSpeed = parseFloat(data[SPEED_SIGNAL]) || 0;
+        renderWidget();
       }
       // Low Beam Light ON = MOVING (60 km/h), OFF = PARKED (0 km/h)
-      // This IS an actuator!
-      if (data['Vehicle.Body.Lights.Beam.Low.IsOn'] !== undefined) { 
-        const lightsOn = data['Vehicle.Body.Lights.Beam.Low.IsOn'];
+      // (treated as an actuator-style trigger here)
+      if (data[LIGHTS_SIGNAL] !== undefined) {
+        const lightsOn = data[LIGHTS_SIGNAL];
         vehicleSpeed = (lightsOn === true || lightsOn === 'true' || lightsOn === 1) ? 60 : 0;
-        renderWidget(); 
+        renderWidget();
       }
     };
 

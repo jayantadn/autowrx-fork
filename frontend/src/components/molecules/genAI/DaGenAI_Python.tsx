@@ -64,8 +64,8 @@ const DaGenAI_Python = ({
     <div className="flex h-full max-h-[calc(100%-10px)] w-full mt-2 rounded">
       <DaGenAI_Base
         type="GenAI_Python"
-        buttonText="Generate SDV App"
-        placeholderText="Enter your prompt to generate SDV App"
+        buttonText="Generate Code"
+        placeholderText="Describe your SDV use case (e.g., automatic seat heating based on cabin temperature)"
         onCodeGenerated={(code) => {
           setGenCode(code)
           if (onCodeGenerated) {

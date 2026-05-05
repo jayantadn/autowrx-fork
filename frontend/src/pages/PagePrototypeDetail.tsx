@@ -26,6 +26,7 @@ import useCurrentModel from '@/hooks/useCurrentModel'
 import useCurrentPrototype from '@/hooks/useCurrentPrototype'
 import DaDialog from '@/components/molecules/DaDialog'
 import PrototypeTabCode from '@/components/organisms/PrototypeTabCode'
+import PrototypeTabAiGenerator from '@/components/organisms/PrototypeTabAiGenerator'
 import PrototypeTabDashboard from '@/components/organisms/PrototypeTabDashboard'
 import PrototypeTabFeedback from '@/components/organisms/PrototypeTabFeedback'
 import DaRuntimeControl from '@/components/molecules/dashboard/DaRuntimeControl'
@@ -356,6 +357,7 @@ const PagePrototypeDetail: FC<ViewPrototypeProps> = ({ }) => {
             )}
             {tab == 'journey' && <PrototypeTabJourney prototype={prototype} />}
             {tab == 'code' && <PrototypeTabCode />}
+            {tab == 'ai' && <PrototypeTabAiGenerator />}
             {tab == 'dashboard' && <PrototypeTabDashboard />}
             {tab == 'feedback' && <PrototypeTabFeedback />}
             {tab == 'staging' && <PrototypeTabStaging prototype={prototype} />}

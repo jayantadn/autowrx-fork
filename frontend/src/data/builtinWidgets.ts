@@ -224,6 +224,7 @@ const BUILT_IN_WIDGETS = [
     desc: 'Teams integration from driver perspective with steering wheel, full call UI with timer, mute controls, and error handling. Video disabled when moving.',
     options: {
       speedSignal: 'Vehicle.Speed',
+      lightsSignal: 'Vehicle.Body.Lights.Beam.Low.IsOn',
       iconURL: '/builtin-widgets/teams-driver/driver-icon.svg',
     },
   },
@@ -237,6 +238,7 @@ const BUILT_IN_WIDGETS = [
     desc: 'Teams integration from rear passenger perspective with full access (video + audio always available). Includes call UI with timer, controls, and error handling.',
     options: {
       speedSignal: 'Vehicle.Speed',
+      lightsSignal: 'Vehicle.Body.Lights.Beam.Low.IsOn',
       iconURL: '/builtin-widgets/teams-passenger/passenger-icon.svg',
     },
   },
@@ -247,10 +249,46 @@ const BUILT_IN_WIDGETS = [
     label: 'Teams - Rider View',
     icon: '/builtin-widgets/teams-rider/rider-icon.svg',
     path: '/builtin-widgets/teams-rider/index.html',
-    desc: 'Teams integration for TVS two-wheeler riders. Audio-only with motorcycle handlebar dashboard view, speed-based safety modes (STOPPED/CITY/URBAN/HIGHWAY), and voice commands.',
+    desc: 'Rider dashboard (battery / range / trip / speedometer) by default. When a Teams call arrives, an overlay popup lets the rider Answer, Decline, or transfer the call to another device (laptop / phone / tablet / smartwatch). Speed-based safety modes (STOPPED/CITY/URBAN/HIGHWAY) gate answering. speedSignal defaults to the writable VSS actuator Vehicle.ADAS.CruiseControl.SpeedSet so prototype runtimes that reject sensor writes can still drive the demo from Python; switch to Vehicle.Speed for production reads.',
+    options: {
+      // Writable actuator (km/h, float) — accepts .set() on strict Velocitas
+      // runtimes that block sensor writes. Switch to 'Vehicle.Speed' if your
+      // runtime supports sensor writes or for production read-only display.
+      speedSignal: 'Vehicle.ADAS.CruiseControl.SpeedSet',
+      lightsSignal: 'Vehicle.Body.Lights.Beam.Low.IsOn',
+      incomingCallSignal: 'Vehicle.Cabin.Infotainment.HMI.IsCallIncoming',
+      callTargetDeviceSignal: 'Vehicle.Cabin.Infotainment.HMI.CallTargetDevice',
+      batterySignal: '',
+      autoCallAfterMs: 15000,
+      iconURL: '/builtin-widgets/teams-rider/rider-icon.svg',
+    },
+  },
+  {
+    id: 'Car-Cockpit-Widget',
+    plugin: 'Builtin',
+    widget: 'Car Cockpit',
+    label: 'Car Cockpit',
+    icon: '/builtin-widgets/car-cockpit/cockpit-icon.svg',
+    path: '/builtin-widgets/car-cockpit/index.html',
+    desc: 'Animated 2D car cockpit view with steering wheel, live speedometer, and headlight indicator (Vehicle.Speed, Vehicle.Body.Lights.Beam.Low.IsOn).',
     options: {
       speedSignal: 'Vehicle.Speed',
-      iconURL: '/builtin-widgets/teams-rider/rider-icon.svg',
+      lightsSignal: 'Vehicle.Body.Lights.Beam.Low.IsOn',
+      iconURL: '/builtin-widgets/car-cockpit/cockpit-icon.svg',
+    },
+  },
+  {
+    id: 'Simple-Wiper-Widget',
+    plugin: 'Builtin',
+    widget: 'Simple Wiper Widget',
+    label: 'Simple Wiper Widget',
+    icon: '/builtin-widgets/simple-wiper/simple-wiper.png',
+    path: '/builtin-widgets/simple-wiper/index.html',
+    desc: 'Animated 2D windshield wiper with rain effect for Vehicle.Body.Windshield.Front.Wiping.Mode (OFF/SLOW/MEDIUM/FAST/INTERVAL/RAIN_SENSOR).',
+    options: {
+      api: 'Vehicle.Body.Windshield.Front.Wiping.Mode',
+      dataUpdateInterval: 200,
+      iconURL: '/builtin-widgets/simple-wiper/simple-wiper.png',
     },
   },
 ]

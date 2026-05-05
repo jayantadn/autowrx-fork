@@ -17,19 +17,20 @@ import HomeNews from '@/components/organisms/HomeNews'
 import { configManagementService } from '@/services/configManagement.service'
 import { Spinner } from '@/components/atoms/spinner'
 import HomeFooterSection from '@/components/organisms/HomeFooterSection'
+import useAuthStore from '@/stores/authStore'
 
 const PageHome = () => {
   const [homeElements, setHomeElements] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const access = useAuthStore((state) => state.access)
+  const isLoggedIn = !!access
 
   useEffect(() => {
     const loadHomeConfig = async () => {
       try {
         setIsLoading(true)
-        // Use public endpoint - no authentication required
         const res = await configManagementService.getPublicConfig('CFG_HOME_CONTENT', 'site')
 
-        // Backend returns { key: string, value: any }
         if (res.value && Array.isArray(res.value)) {
           setHomeElements(res.value)
         }
@@ -42,6 +43,25 @@ const PageHome = () => {
 
     loadHomeConfig()
   }, [])
+
+  const filteredElements = isLoggedIn
+    ? homeElements.map((element) => {
+        if (element.type === 'feature-list' && element.items) {
+          return {
+            ...element,
+            items: element.items
+              .filter((item: any) => item.title !== 'Overview' && item.title !== 'Get Started')
+              .concat([{
+                title: 'Plugin',
+                description: 'Create and manage plugins to extend the platform functionality',
+                url: '/plugins',
+                buttons: [{ title: 'Go to Plugins', url: '/plugins' }]
+              }])
+          }
+        }
+        return element
+      })
+    : homeElements
 
   const getComponent = (elementType: string) => {
     switch (elementType) {
@@ -76,7 +96,7 @@ const PageHome = () => {
 
   return (
     <div className="space-y-12">
-      {homeElements.map((element, index) => {
+      {filteredElements.map((element, index) => {
         const Component = getComponent(element.type) as any
         if (!Component) return null
         return <Component key={index} {...element} />

@@ -930,15 +930,23 @@
       `;
     }
 
+    // Configurable signal (overridable via widget options).
+    let SPEED_SIGNAL = 'Vehicle.Speed';
+
     // Events
-    window.onWidgetLoaded = async () => {
+    window.onWidgetLoaded = async (options) => {
+      if (options && options.speedSignal) SPEED_SIGNAL = options.speedSignal;
+      try {
+        const v = (typeof getApiValue === 'function') ? getApiValue(SPEED_SIGNAL) : undefined;
+        if (v !== undefined && v !== null) speed = parseFloat(v) || 0;
+      } catch (e) {}
       meeting = await loadMeeting() || mockMeeting;
       draw();
     };
 
     window.onVssSync = (data) => {
-      if (data['Vehicle.Speed'] !== undefined) {
-        speed = parseFloat(data['Vehicle.Speed']) || 0;
+      if (data[SPEED_SIGNAL] !== undefined) {
+        speed = parseFloat(data[SPEED_SIGNAL]) || 0;
         draw();
       }
     };

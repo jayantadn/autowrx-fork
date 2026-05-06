@@ -1,6 +1,8 @@
-# AutoWRX
+# AutoWRX — BGSW Instance
 
 AutoWRX is a cloud-based, rapid prototyping environment for software-defined vehicle (SDV) applications. It provides a platform for building and testing new SDV-enabled features against real-world vehicle APIs, with seamless migration to automotive runtimes like Eclipse Velocitas.
+
+> **For BGSW Playground users:** the **Runtime** dropdown only shows runtimes whose name starts with `bgsw-runtime-`. Public runtimes from `playground.digital.auto` are hidden. See the [BGSW Runtime Guide](docs/runtime-isolation.md) to start your own runtime and have it appear in the dropdown.
 
 ## Overview
 
@@ -21,6 +23,14 @@ AutoWRX follows a **Core vs. Plugin** philosophy:
 - **Plugins**: Most features are designed as optional plugins, keeping the base platform lean and allowing for flexibility and customization
 
 The platform uses a dynamic component architecture that enables plugin-provided UI components to be seamlessly rendered within the core application, making the entire UI configuration-driven.
+
+## BGSW Runtimes
+
+The BGSW Playground only shows runtimes whose name starts with `bgsw-runtime-`. Public runtimes from `playground.digital.auto` are hidden — you cannot see them or select them.
+
+To make your own runtime appear in the **Runtime** dropdown, run a runtime container with the right name and pick it from the dropdown. The full step-by-step is in:
+
+**→ [BGSW Runtime Guide](docs/runtime-isolation.md)**
 
 ## Project Structure
 
@@ -55,9 +65,9 @@ If you want to set up AutoWRX for local development, see the **[Development Guid
 
 Quick overview:
 1. Set up MongoDB (Docker or remote)
-2. Configure backend and frontend environment variables
-3. Install dependencies and start both services
-4. Access the application at `http://localhost:3200`
+2. Configure backend and frontend environment variables (this BGSW instance uses **backend port `3201`** to match the Vite dev proxy in `frontend/vite.config.ts`)
+3. Install dependencies and start both services (`yarn dev` in `backend/`, `yarn dev` in `frontend/`)
+4. Access the application at `http://localhost:3210` (the Vite dev server, configured via `frontend/package.json`)
 
 ### For Deployment
 
@@ -74,6 +84,7 @@ If you want to deploy AutoWRX to production, see the **[Instance Setup Guide](in
 
 ## Documentation
 
+- **[BGSW Runtime Guide](docs/runtime-isolation.md)** - How to start a runtime and have it show up in the Runtime dropdown
 - **[Development Guide](development-guide.md)** - Local development setup
 - **[Plugin Development](docs/plugin/README.md)** - Creating and developing plugins
 - **[Project Structure](docs/project-structure.md)** - Codebase organization

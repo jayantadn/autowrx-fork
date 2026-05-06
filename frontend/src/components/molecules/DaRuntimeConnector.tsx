@@ -14,6 +14,7 @@ import useSelfProfileQuery from '@/hooks/useSelfProfile'
 import { useAssets } from '@/hooks/useAssets'
 
 import { io } from 'socket.io-client'
+import { BGSW_RUNTIME_PREFIX, isPublicRuntime } from '@/const/runtime'
 
 export interface Runtime {
   desc: string
@@ -45,7 +46,7 @@ const DaRuntimeConnector = forwardRef<any, KitConnectProps>(
   (
     {
       hideLabel = false,
-      targetPrefix = 'runtime-',
+      targetPrefix = BGSW_RUNTIME_PREFIX,
       kitServerUrl,
       usedAPIs,
       onActiveRtChanged,
@@ -391,11 +392,17 @@ const DaRuntimeConnector = forwardRef<any, KitConnectProps>(
       })
 
       let sortedKits = kits.filter((rt) => {
-        const kitIdLower = rt.kit_id.toLowerCase()
+        const kitIdLower = (rt.kit_id || '').toLowerCase()
+        // Hard namespace block: never let public/shared runtimes through,
+        // regardless of what targetPrefix the caller asked for. This guards
+        // the BGSW playground against accidental exposure of public runtimes.
+        if (isPublicRuntime(kitIdLower)) return false
         if (Array.isArray(targetPrefix)) {
           return targetPrefix.some(prefix => kitIdLower.startsWith(prefix.toLowerCase()))
         }
-        return kitIdLower.startsWith(targetPrefix ? targetPrefix.toLowerCase() : 'runtime-')
+        return kitIdLower.startsWith(
+          targetPrefix ? targetPrefix.toLowerCase() : BGSW_RUNTIME_PREFIX,
+        )
       })
 
       sortedKits.sort((a, b) => {
@@ -554,32 +561,16 @@ const DaRuntimeConnector = forwardRef<any, KitConnectProps>(
           }
         }
       } else {
-        let publicRuntimes = allRuntimes.filter((rt: any) => rt.name.toLowerCase().startsWith('runtime-public-') || rt.name.toLowerCase().startsWith('runtime-shared-'))
-
-        let myRuntimes = []
-        if (Array.isArray(assets)) {
-          let runtimesAssets = assets.filter((a: any) => a.type == 'CLOUD_RUNTIME') || []
-          let myRuntimeNames = runtimesAssets.map((asset: any) => asset.name.toLowerCase())
-          myRuntimes = allRuntimes.filter((rt: any) => {
-            let result = false
-            myRuntimeNames.forEach((myRtName: string) => {
-              if (rt.name.toLowerCase().startsWith(`${myRtName}`)) {
-                result = true
-              }
-            })
-            return result
-          })
-        }
-
-        if (myRuntimes.length >= 3) {
-          setRenderRuntimes([...new Set([...myRuntimes])])
-        } else {
-          let freeRuntimes = publicRuntimes.sort((a: any, b: any) => {
-            return a.noRunner - b.noRunner
-          })
-          setRenderRuntimes([...new Set([...myRuntimes, ...freeRuntimes.slice(0, 3 - myRuntimes.length)])])
-        }
-
+        // BGSW namespace mode: every runtime that survives onGetAllKitData
+        // is already inside the BGSW namespace (public/shared kits were
+        // hard-blocked there). Show all of them so any BGSW user can pick
+        // any private bgsw-runtime-* without depending on per-user asset
+        // registration. Public-runtime padding has been intentionally
+        // removed to keep the namespace boundary clean.
+        const safeRuntimes = (allRuntimes as Runtime[]).filter(
+          (rt: Runtime) => !isPublicRuntime(rt.kit_id),
+        )
+        setRenderRuntimes([...new Set(safeRuntimes)])
       }
     }, [assets, allRuntimes, isDeployMode])
 

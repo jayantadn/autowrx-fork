@@ -73,6 +73,7 @@ const DaGenAI_Base = ({
         description: 'Generate SDV Python code using Azure Open AI',
         apiKey: 'Empty',
         endpointUrl: '/v2/ai/generate-code',
+
         customPayload: (prompt: string) => ({ prompt }),
         method: 'POST',
         requestField: 'prompt',

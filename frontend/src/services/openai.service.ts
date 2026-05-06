@@ -1,10 +1,10 @@
 import axios from 'axios'
 import config from '@/configs/config'
 
-const API_BASE = 'http://localhost:3201'
+const API_BASE = `${config.serverBaseUrl}/${config.serverVersion}`
 
 export const generateCode = async (prompt: string, context?: string) => {
-  const res = await axios.post(`${API_BASE}/v2/ai/generate-code`, {
+  const res = await axios.post(`${API_BASE}/ai/generate-code`, {
     prompt,
     context
   }, {
@@ -14,7 +14,7 @@ export const generateCode = async (prompt: string, context?: string) => {
 }
 
 export const generateScenarios = async (code: string, prompt?: string) => {
-  const res = await axios.post(`${API_BASE}/v2/ai/generate-scenarios`, {
+  const res = await axios.post(`${API_BASE}/ai/generate-scenarios`, {
     code,
     prompt
   }, {

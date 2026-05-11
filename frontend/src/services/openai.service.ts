@@ -26,3 +26,13 @@ export const generateScenarios = async (code: string, prompt?: string) => {
   })
   return res.data.scenarios
 }
+
+export const generateJourney = async (useCase: string, code?: string) => {
+  const res = await axios.post(`${API_BASE}/ai/generate-journey`, {
+    useCase,
+    code,
+  }, {
+    timeout: 60000,
+  })
+  return res.data.journey as string
+}

@@ -48,6 +48,27 @@ router.post('/generate-scenarios', async (req, res) => {
   }
 });
 
+router.post('/generate-journey', async (req, res) => {
+  try {
+    console.log('=== Generate Journey Request ===')
+    const { useCase, code } = req.body;
+
+    if (!useCase && !code) {
+      return res.status(400).json({ error: 'Either useCase or code is required' });
+    }
+
+    const journey = await openai.generateJourney(useCase || '', code || '');
+    res.json({ journey });
+  } catch (error) {
+    console.error('=== Error generating journey ===');
+    console.error('Error:', error.message);
+    console.error('Cause:', error.cause?.message);
+    console.error('Stack:', error.stack);
+    res.locals.errorMessage = error.message;
+    res.status(500).json({ error: 'Failed to generate journey: ' + error.message });
+  }
+});
+
 router.post('/generate-mock-api', async (req, res) => {
   try {
     const { code, prompt } = req.body;

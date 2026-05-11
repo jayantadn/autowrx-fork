@@ -48,7 +48,9 @@ const DaTableEditor = ({
   const [internalValue, setInternalValue] = useState(defaultValue)
 
   useEffect(() => {
-    if (!internalValue || internalValue.length < 10) {
+    if (isEditing) return
+    setInternalValue(defaultValue)
+    if (!defaultValue || defaultValue.length < 10) {
       setColumnNames(['Step 1', 'Step 2', 'Step 3'])
       setTableData([
         { rowName: 'Who', 'Step 1': '', 'Step 2': '', 'Step 3': '' },
@@ -61,10 +63,10 @@ const DaTableEditor = ({
         },
       ])
     } else {
-      setTableData(parseTableData(internalValue))
-      setColumnNames(getTableColumns(internalValue))
+      setTableData(parseTableData(defaultValue))
+      setColumnNames(getTableColumns(defaultValue))
     }
-  }, [])
+  }, [defaultValue, isEditing])
 
   const debouncedOnChange = useCallback(
     debounce((value: string) => {

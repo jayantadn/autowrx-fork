@@ -284,9 +284,80 @@ ${prompt || 'Generate mock ExtendedApi definitions for all missing signals.'}`
   return response.data.choices?.[0]?.message?.content || 'No response from AI'
 }
 
+const generateJourney = async (useCase, code) => {
+  const endpoint = config.azureOpenai.endpoint
+  const apiKey = config.azureOpenai.key
+
+  console.log('Azure OpenAI endpoint (journey):', endpoint)
+
+  const systemPrompt = `You are a UX product analyst for Software-Defined Vehicle (SDV) features.
+Given a use case description and (optionally) the SDV Python code that implements it,
+produce a 3-step Customer Journey table describing the end-user experience.
+
+Output STRICTLY in the following plain-text format — no markdown, no code fences, no
+preamble, no trailing commentary. Each step is introduced by a line starting with "#".
+Each row inside a step has the format "<RowName>: <value>". Use EXACTLY these three
+row names in this exact order: "Who", "What", "Customer TouchPoints".
+
+Use exactly 3 steps. Keep each cell concise (one short sentence, no line breaks
+inside a cell).
+
+Required output format:
+#Step 1
+Who: <persona involved in this step>
+What: <what they do / what happens>
+Customer TouchPoints: <vehicle UI element, sensor, app, voice, etc.>
+#Step 2
+Who: ...
+What: ...
+Customer TouchPoints: ...
+#Step 3
+Who: ...
+What: ...
+Customer TouchPoints: ...
+`
+
+  const userMessage = `Use case:
+${useCase || '(no use case provided)'}
+
+SDV Python code (for reference; may be empty):
+${code ? code.slice(0, 4000) : '(no code provided)'}
+
+Generate the 3-step Customer Journey table now.`
+
+  const response = await axios.post(endpoint, {
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage }
+    ],
+    max_tokens: 800,
+    temperature: 0.5
+  }, {
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': apiKey
+    },
+    httpsAgent,
+    proxy: false
+  })
+
+  const raw = response.data.choices?.[0]?.message?.content || ''
+  return sanitizeJourney(raw)
+}
+
+const sanitizeJourney = (text) => {
+  if (!text) return ''
+  let cleaned = text.trim()
+  cleaned = cleaned.replace(/^```[a-zA-Z]*\s*/, '').replace(/\s*```$/, '')
+  const lines = cleaned.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  const kept = lines.filter(l => l.startsWith('#') || /^[^:]+:\s/.test(l))
+  return kept.join('\n')
+}
+
 module.exports = {
   generateCode,
   generateScenarios,
   generateMockApi,
+  generateJourney,
   loadVssSignals
 }

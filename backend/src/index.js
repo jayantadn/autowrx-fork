@@ -12,6 +12,7 @@ const config = require('./config/config');
 const logger = require('./config/logger');
 const initializeRoles = require('./scripts/initializeRoles');
 const { init } = require('./config/socket');
+const { aaosService } = require('./services');
 const { setupScheduledCheck, assignAdmins, convertLogsCap } = require('./scripts');
 const { seedBrands, seedModelFeatures } = require('./scripts');
 
@@ -64,6 +65,8 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(async () => 
     logger.info(`Listening to port ${config.port}`);
   });
   init(server);
+  // Attach AAOS WebSocket server to the same HTTP server (path: /aaos-ws)
+  aaosService.initWebSocket(server);
 }).catch(unexpectedErrorHandler);
 
 process.on('uncaughtException', unexpectedErrorHandler);

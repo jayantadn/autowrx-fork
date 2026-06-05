@@ -36,3 +36,39 @@ export const generateJourney = async (useCase: string, code?: string) => {
   })
   return res.data.journey as string
 }
+
+export interface GeneratedOverview {
+  problem: string
+  says_who: string
+  solution: string
+}
+
+export const generateOverview = async (
+  prompt: string,
+  code?: string,
+): Promise<GeneratedOverview> => {
+  const res = await axios.post(
+    `${API_BASE}/ai/generate-overview`,
+    { prompt, code },
+    { timeout: 60000 },
+  )
+  const o = res.data.overview || {}
+  return {
+    problem: String(o.problem || ''),
+    says_who: String(o.says_who || ''),
+    solution: String(o.solution || ''),
+  }
+}
+
+export const generateDashboard = async (
+  prompt: string,
+  code: string,
+): Promise<string> => {
+  const res = await axios.post(
+    `${API_BASE}/ai/generate-dashboard`,
+    { prompt, code },
+    { timeout: 60000 },
+  )
+  // backend returns widgetConfig as a JSON string already
+  return res.data.widgetConfig as string
+}

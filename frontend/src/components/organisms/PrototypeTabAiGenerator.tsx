@@ -1,7 +1,13 @@
 // Copyright (c) 2025 Eclipse Foundation.
 
 import { useState, useEffect } from 'react'
-import { generateCode, generateScenarios, generateJourney } from '@/services/openai.service'
+import {
+  generateCode,
+  generateScenarios,
+  generateJourney,
+  generateOverview,
+  generateDashboard,
+} from '@/services/openai.service'
 import { Button } from '@/components/atoms/button'
 import { Spinner } from '@/components/atoms/spinner'
 import { toast } from 'react-toastify'
@@ -64,7 +70,9 @@ const AiGenerator = () => {
     try {
       const result = await generateCode(prompt)
       setGeneratedCode(result)
-      autoSyncCustomerJourney(prompt, result)
+      // Fan out: paste code into compiler, then in parallel generate the
+      // customer journey, the library overview, and the dashboard widgets.
+      void autoApplyGeneratedCode(prompt, result)
     } catch (error) {
       toast.error('Failed to generate code')
     } finally {
@@ -72,28 +80,120 @@ const AiGenerator = () => {
     }
   }
 
-  const autoSyncCustomerJourney = (usedPrompt: string, generated: string) => {
+  // Push generated code straight into the prototype's code field (so it
+  // appears in the SDV Code compiler tab) and trigger all derived
+  // auto-generations in parallel.
+  const autoApplyGeneratedCode = async (
+    usedPrompt: string,
+    generated: string,
+  ) => {
     if (!currentPrototype?.id) return
     if (!generated || generated.trim().length < 10) return
-    const useCaseParts: string[] = []
-    if (currentPrototype.name) useCaseParts.push(`Prototype: ${currentPrototype.name}`)
-    if (usedPrompt) useCaseParts.push(`User prompt: ${usedPrompt}`)
-    const problem = (currentPrototype as any)?.description?.problem
-    if (problem) useCaseParts.push(`Problem: ${problem}`)
-    const useCase = useCaseParts.join('\n')
 
-    void (async () => {
-      try {
-        const journey = await generateJourney(useCase, generated)
-        if (!journey || journey.trim().length < 10) return
-        await updatePrototypeService(currentPrototype.id, { customer_journey: journey })
-        await refetchCurrentPrototype()
-        toast.info('Customer Journey was auto-updated based on the new use case.')
-      } catch (err) {
-        console.warn('Auto customer-journey update failed (non-blocking):', err)
-      }
-    })()
+    // 1) Paste code into the SDV Code compiler
+    try {
+      await updatePrototypeService(currentPrototype.id, { code: generated })
+      toast.success('Generated code pasted into the SDV Code editor.')
+    } catch (err) {
+      console.warn('Failed to paste code into prototype:', err)
+    }
+
+    // 2..4) Run derived generators in parallel; each is non-blocking
+    await Promise.allSettled([
+      autoSyncCustomerJourneyAsync(usedPrompt, generated),
+      autoSyncOverview(usedPrompt, generated),
+      autoSyncDashboard(usedPrompt, generated),
+    ])
+
+    try {
+      await refetchCurrentPrototype()
+    } catch (_) {
+      /* non-blocking */
+    }
   }
+
+  const autoSyncCustomerJourneyAsync = async (
+    usedPrompt: string,
+    generated: string,
+  ) => {
+    if (!currentPrototype?.id) return
+    try {
+      const useCaseParts: string[] = []
+      if (currentPrototype.name)
+        useCaseParts.push(`Prototype: ${currentPrototype.name}`)
+      if (usedPrompt) useCaseParts.push(`User prompt: ${usedPrompt}`)
+      const problem = (currentPrototype as any)?.description?.problem
+      if (problem) useCaseParts.push(`Problem: ${problem}`)
+      const useCase = useCaseParts.join('\n')
+      const journey = await generateJourney(useCase, generated)
+      if (!journey || journey.trim().length < 10) return
+      await updatePrototypeService(currentPrototype.id, {
+        customer_journey: journey,
+      })
+      toast.info('Customer Journey was auto-updated.')
+    } catch (err) {
+      console.warn('Auto customer-journey update failed (non-blocking):', err)
+    }
+  }
+
+  const autoSyncOverview = async (
+    usedPrompt: string,
+    generated: string,
+  ) => {
+    if (!currentPrototype?.id) return
+    try {
+      const overview = await generateOverview(usedPrompt, generated)
+      if (!overview.problem && !overview.solution) return
+      await updatePrototypeService(currentPrototype.id, {
+        description: {
+          problem: overview.problem,
+          says_who: overview.says_who,
+          solution: overview.solution,
+          status:
+            (currentPrototype as any)?.description?.status || '',
+          text:
+            (currentPrototype as any)?.description?.text || '',
+        } as any,
+      } as any)
+      toast.info('Overview was auto-updated.')
+    } catch (err) {
+      console.warn('Auto overview update failed (non-blocking):', err)
+    }
+  }
+
+  const autoSyncDashboard = async (
+    usedPrompt: string,
+    generated: string,
+  ) => {
+    if (!currentPrototype?.id) return
+    try {
+      const widgetConfig = await generateDashboard(usedPrompt, generated)
+      if (!widgetConfig) return
+      // widgetConfig may arrive as a string; ensure it is valid JSON before saving
+      let parsed: any = widgetConfig
+      if (typeof widgetConfig === 'string') {
+        try { parsed = JSON.parse(widgetConfig) } catch (_) {
+          console.warn('Dashboard widget config is not valid JSON:', widgetConfig.slice(0, 200))
+          toast.error('Dashboard auto-generation returned invalid data. Check Azure OpenAI config.')
+          return
+        }
+      }
+      if (!parsed?.widgets?.length) {
+        toast.warning('Dashboard auto-generation produced no widgets (no VSS signals detected in code).')
+        return
+      }
+      await updatePrototypeService(currentPrototype.id, {
+        widget_config: typeof widgetConfig === 'string' ? widgetConfig : JSON.stringify(widgetConfig),
+      } as any)
+      toast.success(`Dashboard updated — ${parsed.widgets.length} widget(s) placed. Open the Dashboard tab to see them.`)
+    } catch (err: any) {
+      const msg = err?.message || String(err)
+      console.warn('Auto dashboard update failed:', msg)
+      toast.error(`Dashboard auto-generation failed: ${msg}`)
+    }
+  }
+
+
 
   const handleGenerateScenarios = async () => {
     if (!code.trim()) {

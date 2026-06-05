@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../tailwind.min.css">
+  <script defer src="../syncer.js"></script>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-gray-900 flex items-center justify-center" style="width:100%;height:100vh">
+  <div id="root" class="w-full h-full flex flex-col items-center justify-center gap-2 p-3">
+    <!-- rendered widget here -->
+  </div>
+  <script>
+    const SIGNAL = "Microsoft.Teams.Presence.Status";
+    const STATUS_COLORS = {
+      Available: "bg-green-500",
+      Busy: "bg-red-500",
+      Away: "bg-yellow-500",
+      DoNotDisturb: "bg-purple-500",
+      Offline: "bg-gray-500"
+    };
+    const STATUS_TEXT = {
+      Available: "Available",
+      Busy: "Busy",
+      Away: "Away",
+      DoNotDisturb: "Do Not Disturb",
+      Offline: "Offline"
+    };
+
+    function render(val) {
+      const root = document.getElementById("root");
+      root.innerHTML = `
+        <div class="text-sm uppercase tracking-widest text-gray-400">Presence Status</div>
+        <div class="flex flex-col items-center gap-2">
+          <div class="px-4 py-2 rounded-full text-white font-bold ${
+            STATUS_COLORS[val] || "bg-gray-700"
+          }">${STATUS_TEXT[val] || "Unknown"}</div>
+          <div class="text-gray-500 text-sm">${val || "No activity"}</div>
+        </div>
+      `;
+    }
+
+    // Called every time ANY runtime signal changes — use for live reaction
+    window.onVssSync = function(data) {
+      if (SIGNAL in data) render(data[SIGNAL]);
+    };
+
+    window.onWidgetLoaded = function(options) {
+      const sig = (options && options.api) || SIGNAL;
+      // initial value
+      const v = window.getApiValue(sig);
+      render(v !== undefined ? v : "Offline");
+    };
+
+    window.onWidgetUnloaded = function() {
+      // No timers to clear for this widget
+    };
+  </script>
+</body>
+</html>

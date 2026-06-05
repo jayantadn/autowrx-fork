@@ -27,6 +27,7 @@ import { Spinner } from '@/components/atoms/spinner'
 import { VscChevronLeft, VscChevronRight } from 'react-icons/vsc'
 import { ArrowLeftFromLine, CopyMinus } from 'lucide-react'
 import { TbLayoutSidebar, TbLayoutSidebarRight, TbLayoutSidebarRightFilled } from 'react-icons/tb'
+import { microsoftGraphSignals, getMsSignalCategory } from '@/data/microsoftGraphSignals'
 
 interface ApiCodeBlockProps {
   content: string
@@ -350,6 +351,7 @@ const PrototypeTabCodeApiPanel: FC<PrototypeTabCodeApiPanelProps> = ({
   )
 
   const [useApis, setUseApis] = useState<any[]>([])
+  const [usedMsApis, setUsedMsApis] = useState<any[]>([])
   const [usedCustomApiItems, setUsedCustomApiItems] = useState<Map<string, any[]>>(new Map()) // Map of setId -> used items
   const [activeApi, setActiveApi] = useState<any>()
   const [popupApi, setPopupApi] = useState<boolean>(false)
@@ -369,6 +371,15 @@ const PrototypeTabCodeApiPanel: FC<PrototypeTabCodeApiPanelProps> = ({
     })
     setUseApis(useList)
   }, [code, activeModelApis])
+
+  // Detect Microsoft Graph signals used in the Python code
+  useEffect(() => {
+    if (!code) {
+      setUsedMsApis([])
+      return
+    }
+    setUsedMsApis(microsoftGraphSignals.filter(s => code.includes(s.name)))
+  }, [code])
 
   // Fetch all CustomApiSets for "Used APIs" tab
   const customApiSetQueries = useQuery({
@@ -506,6 +517,19 @@ const PrototypeTabCodeApiPanel: FC<PrototypeTabCodeApiPanelProps> = ({
                     COVESA Signals
                   </span>
                 </DaTabItem>
+                <DaTabItem
+                  active={tab === 'microsoft-graph'}
+                  dataId="microsoft-graph-tab"
+                  to="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setTab('microsoft-graph')
+                  }}
+                >
+                  <span className="max-w-[200px] truncate">
+                    Microsoft Graph
+                  </span>
+                </DaTabItem>
                 {/* USP and V2C tabs (for backward compatibility) */}
                 {hasUSP && (
                   <DaTabItem
@@ -593,6 +617,26 @@ const PrototypeTabCodeApiPanel: FC<PrototypeTabCodeApiPanelProps> = ({
                       />
                     ))}
 
+                  {/* Microsoft Graph APIs */}
+                  {usedMsApis.length > 0 && (
+                    <>
+                      <div className="mt-4" />
+                      <span className="text-sm font-semibold">Microsoft Graph (Mock):</span>
+                      {usedMsApis.map((item: any, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between py-1.5 text-muted-foreground cursor-pointer hover:bg-primary/10 px-2 rounded"
+                          onClick={() => {
+                            onApiClicked(item)
+                          }}
+                        >
+                          <span className="text-sm font-normal truncate">{item.name}</span>
+                          <span className="text-xs text-muted-foreground ml-2 shrink-0">{item.datatype}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+
                   {/* CustomApiSet sections */}
                   {Array.from(usedCustomApiItems.entries()).map(([setId, items]) => {
                     const set = customApiSetQueries.data?.find((s) => s.id === setId)
@@ -625,6 +669,43 @@ const PrototypeTabCodeApiPanel: FC<PrototypeTabCodeApiPanelProps> = ({
           {tab === 'all-signals' && (
             <div className="flex w-full flex-1 min-h-0 overflow-hidden">
               <ModelApiList onApiClick={onApiClicked} readOnly={true} />
+            </div>
+          )}
+
+          {tab === 'microsoft-graph' && (
+            <div className="flex flex-col w-full flex-1 min-h-0 overflow-y-auto px-3 py-2">
+              <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                Mock Microsoft Graph API signals. Use <code className="bg-muted px-1 rounded">api.get()</code> / <code className="bg-muted px-1 rounded">api.set()</code> exactly like COVESA VSS signals.
+              </p>
+              {/* Group by category */}
+              {Object.entries(
+                microsoftGraphSignals.reduce<Record<string, typeof microsoftGraphSignals>>((acc, s) => {
+                  const cat = getMsSignalCategory(s.name)
+                  if (!acc[cat]) acc[cat] = []
+                  acc[cat].push(s)
+                  return acc
+                }, {})
+              ).map(([category, signals]) => (
+                <div key={category} className="mb-4">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{category}</span>
+                  {signals.map((item) => {
+                    const { textClass } = getApiTypeClasses(item.type)
+                    return (
+                      <div
+                        key={item.name}
+                        className="flex items-start justify-between py-1.5 px-2 hover:bg-primary/10 rounded cursor-pointer"
+                        onClick={() => onApiClicked(item)}
+                      >
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className={`text-sm truncate ${textClass}`}>{item.name}</span>
+                          <span className="text-xs text-muted-foreground truncate">{item.description}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground ml-2 shrink-0">{item.datatype}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ))}
             </div>
           )}
 

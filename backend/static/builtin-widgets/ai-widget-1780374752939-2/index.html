@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../tailwind.min.css">
+  <script defer src="../syncer.js"></script>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-gray-900 flex items-center justify-center" style="width:100%;height:100vh">
+  <div id="root" class="w-full h-full flex flex-col items-center justify-center gap-2 p-3">
+    <!-- rendered widget here -->
+    <div class="flex flex-col items-center">
+      <span id="label" class="text-sm uppercase tracking-wider text-gray-400">Presence Status</span>
+      <div id="badge" class="mt-2 px-4 py-2 rounded-full text-white text-lg font-semibold"></div>
+      <span id="activity" class="mt-1 text-sm text-gray-500"></span>
+    </div>
+  </div>
+  <script>
+    const SIGNAL = "Microsoft.Teams.Presence.Status";
+    const STATUS_COLORS = {
+      Available: "bg-green-500",
+      Busy: "bg-red-500",
+      Away: "bg-yellow-400",
+      DoNotDisturb: "bg-purple-500",
+      Offline: "bg-gray-700"
+    };
+    const STATUS_TEXTS = {
+      Available: "Available",
+      Busy: "Busy",
+      Away: "Away",
+      DoNotDisturb: "Do Not Disturb",
+      Offline: "Offline"
+    };
+
+    function render(val) {
+      const badge = document.getElementById("badge");
+      const activity = document.getElementById("activity");
+
+      let status = "Offline"; // Default status
+      if (val >= 0 && val <= 20) status = "Offline";
+      else if (val > 20 && val <= 40) status = "Away";
+      else if (val > 40 && val <= 60) status = "Busy";
+      else if (val > 60 && val <= 80) status = "DoNotDisturb";
+      else if (val > 80 && val <= 100) status = "Available";
+
+      badge.className = `mt-2 px-4 py-2 rounded-full text-white text-lg font-semibold ${STATUS_COLORS[status]}`;
+      badge.textContent = STATUS_TEXTS[status];
+      activity.textContent = `Activity: ${STATUS_TEXTS[status]}`;
+    }
+
+    // Called every time ANY runtime signal changes — use for live reaction
+    window.onVssSync = function(data) {
+      if (SIGNAL in data) render(data[SIGNAL]);
+    };
+
+    window.onWidgetLoaded = function(options) {
+      const sig = (options && options.api) || SIGNAL;
+      // initial value
+      const v = window.getApiValue(sig);
+      render(v !== undefined ? v : 0);
+    };
+
+    window.onWidgetUnloaded = function() {
+      // No timers to clear for this widget
+    };
+  </script>
+</body>
+</html>

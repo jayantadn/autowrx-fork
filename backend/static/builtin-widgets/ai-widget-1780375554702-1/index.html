@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../tailwind.min.css">
+  <script defer src="../syncer.js"></script>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-gray-900 flex items-center justify-center" style="width:100%;height:100vh">
+  <div id="root" class="w-full h-full flex flex-col items-center justify-center gap-2 p-3">
+    <div class="flex flex-col items-center gap-2">
+      <div class="text-xs uppercase tracking-widest text-gray-400">Upcoming Meeting</div>
+      <div id="meeting-title" class="text-lg text-white font-semibold text-center"></div>
+      <div class="relative w-40 h-20">
+        <svg viewBox="0 0 100 50" class="absolute top-0 left-0 w-full h-full">
+          <path d="M10,50 A40,40 0 0,1 90,50" fill="none" stroke="#374151" stroke-width="8" />
+          <path id="value-arc" d="M10,50 A40,40 0 0,1 90,50" fill="none" stroke="#6366f1" stroke-width="8" stroke-linecap="round" />
+        </svg>
+        <div id="numeric-value" class="absolute inset-0 flex items-center justify-center text-4xl font-bold text-white"></div>
+      </div>
+      <button id="join-button" class="px-4 py-2 bg-indigo-500 text-white rounded-md text-sm font-medium hover:bg-indigo-600 focus:outline-none focus:ring focus:ring-indigo-400 hidden">Join</button>
+    </div>
+  </div>
+  <script>
+    const SIGNAL_TITLE = "Microsoft.Teams.Calendar.NextMeeting.Title";
+    const SIGNAL_MINUTES = "Microsoft.Teams.Calendar.NextMeeting.MinutesUntilStart";
+    const SIGNAL_JOIN_URL = "Microsoft.Teams.Calendar.NextMeeting.JoinUrl";
+    const ARC_MIN = 0;
+    const ARC_MAX = 100;
+
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+      const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
+    }
+
+    function describeArc(x, y, radius, startAngle, endAngle) {
+      const start = polarToCartesian(x, y, radius, endAngle);
+      const end = polarToCartesian(x, y, radius, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+      return [
+        "M", start.x, start.y,
+        "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
+      ].join(" ");
+    }
+
+    function render(minutes, title, joinUrl) {
+      const arcElement = document.getElementById("value-arc");
+      const valueElement = document.getElementById("numeric-value");
+      const titleElement = document.getElementById("meeting-title");
+      const joinButton = document.getElementById("join-button");
+
+      // Update title
+      titleElement.textContent = title || "No upcoming meeting";
+
+      // Update minutes gauge
+      const percentage = Math.max(ARC_MIN, Math.min(ARC_MAX, minutes));
+      const arcColor = percentage > 10 ? "#10B981" : percentage > 5 ? "#F59E0B" : "#EF4444";
+      arcElement.setAttribute("d", describeArc(50, 50, 40, 0, (percentage / ARC_MAX) * 180));
+      arcElement.setAttribute("stroke", arcColor);
+      valueElement.textContent = minutes !== undefined ? Math.round(minutes) : "--";
+
+      // Show/hide Join button
+      if (joinUrl) {
+        joinButton.classList.remove("hidden");
+        joinButton.onclick = () => window.open(joinUrl, "_blank");
+      } else {
+        joinButton.classList.add("hidden");
+      }
+    }
+
+    window.onVssSync = function(data) {
+      const minutes = data[SIGNAL_MINUTES];
+      const title = data[SIGNAL_TITLE];
+      const joinUrl = data[SIGNAL_JOIN_URL];
+      render(minutes, title, joinUrl);
+    };
+
+    window.onWidgetLoaded = function(options) {
+      const minutes = window.getApiValue(SIGNAL_MINUTES);
+      const title = window.getApiValue(SIGNAL_TITLE);
+      const joinUrl = window.getApiValue(SIGNAL_JOIN_URL);
+      render(minutes, title, joinUrl);
+    };
+
+    window.onWidgetUnloaded = function() {
+      // No timers to clear
+    };
+  </script>
+</body>
+</html>

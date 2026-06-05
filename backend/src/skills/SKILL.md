@@ -360,3 +360,97 @@ if __name__ == "__main__":
 1. Add the signal getter call in `_run_cycle` (or a helper): `await self._safe_read(self.Vehicle.Some.Signal.get, "Vehicle.Some.Signal")`
 2. Add its mock value to `MOCK_VALUES`: `"Vehicle.Some.Signal": <default_value>`
 3. That's it — `_safe_read` handles the fallback automatically for every signal.
+
+---
+
+## Microsoft Graph API Signals — Python Pattern
+
+Microsoft.Teams.* signals are NOT part of the COVESA VSS tree and cannot be accessed via
+`self.Vehicle.Microsoft...` (raises AttributeError at runtime) or `api.get()` (no such
+import exists in the Python vehicle app sandbox — `sdv._internal` does NOT exist).
+
+Instead, store them as a plain dictionary in `self._ms` and expose `_ms_get` / `_ms_set`
+helper methods. This is the ONLY correct pattern for Microsoft signals in Python.
+
+FORBIDDEN (causes runtime crash):
+  ❌ from sdv._internal.api import api          # module does not exist
+  ❌ self.vehicle.Microsoft.Teams.Call.IsActive  # Vehicle has no Microsoft attribute
+  ❌ await api.get('Microsoft.Teams.Call.IsActive') # api is not defined in Python
+
+Required pattern:
+```python
+import asyncio
+import logging
+from sdv.vehicle_app import VehicleApp
+from vehicle import Vehicle, vehicle
+
+logger = logging.getLogger(__name__)
+
+POLL_INTERVAL_SEC = 2
+
+
+class TeamsApp(VehicleApp):
+    def __init__(self, vehicle_client: Vehicle):
+        super().__init__()
+        self.Vehicle = vehicle_client
+        # In-process mock store for Microsoft Graph signals.
+        # Replace with real Graph SDK calls when available — no Python code change needed.
+        self._ms = {
+            'Microsoft.Teams.Call.IsIncoming': False,
+            'Microsoft.Teams.Call.IsActive': False,
+            'Microsoft.Teams.Call.IsMuted': False,
+            'Microsoft.Teams.Call.IsOnHold': False,
+            'Microsoft.Teams.Call.ParticipantCount': 0,
+            'Microsoft.Teams.Call.TargetDevice': '',
+            'Microsoft.Teams.Presence.Status': 'Available',
+            'Microsoft.Teams.Presence.Activity': 'Available',
+            'Microsoft.Teams.Calendar.NextMeeting.Title': '',
+            'Microsoft.Teams.Calendar.NextMeeting.MinutesUntilStart': 99,
+            'Microsoft.Teams.Calendar.NextMeeting.IsStartingSoon': False,
+            'Microsoft.Teams.Contacts.CallerDisplayName': '',
+            'Microsoft.Teams.Contacts.CallerEmail': '',
+            'Microsoft.Teams.Chat.UnreadCount': 0,
+            'Microsoft.Teams.Chat.LastMessagePreview': '',
+            'Microsoft.Teams.Chat.LastSenderName': '',
+        }
+
+    def _ms_get(self, name: str):
+        """Read a Microsoft Graph mock signal."""
+        return self._ms.get(name)
+
+    def _ms_set(self, name: str, value):
+        """Write a Microsoft Graph mock signal."""
+        self._ms[name] = value
+        logger.debug("Microsoft signal set: %s = %s", name, value)
+
+    async def on_start(self):
+        logger.info("TeamsApp started")
+        while True:
+            await self._run_cycle()
+            await asyncio.sleep(POLL_INTERVAL_SEC)
+
+    async def _run_cycle(self):
+        try:
+            # Read VSS signal the normal way
+            speed = (await self.Vehicle.Speed.get()).value or 0.0
+
+            # Read Microsoft signals via _ms_get
+            is_active = self._ms_get('Microsoft.Teams.Call.IsActive')
+
+            # Write Microsoft signals via _ms_set
+            if speed > 30 and is_active:
+                self._ms_set('Microsoft.Teams.Call.IsMuted', True)
+                logger.info("Auto-muted call at speed %.1f km/h", speed)
+
+        except Exception as e:
+            logger.error("Error in run cycle: %s", e)
+
+
+async def main():
+    app = TeamsApp(vehicle)
+    await app.run()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```

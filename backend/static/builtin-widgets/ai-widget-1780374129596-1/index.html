@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../tailwind.min.css">
+  <script defer src="../syncer.js"></script>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-gray-900 flex items-center justify-center" style="width:100%;height:100vh">
+  <div id="root" class="w-full h-full flex flex-col items-center justify-center gap-2 p-3">
+    <div class="flex flex-col items-center gap-2">
+      <div class="text-sm uppercase tracking-widest text-gray-400">Meeting Reminder</div>
+      <div id="title" class="text-lg font-semibold text-white"></div>
+      <div class="relative w-40 h-20">
+        <svg viewBox="0 0 200 100" class="absolute top-0 left-0 w-full h-full">
+          <path d="M10,90 A80,80 0 0,1 190,90" fill="none" stroke="#374151" stroke-width="10" />
+          <path id="valueArc" d="M10,90 A80,80 0 0,1 10,90" fill="none" stroke="#6366f1" stroke-width="10" stroke-linecap="round" />
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <div id="numericValue" class="text-4xl font-bold text-white"></div>
+          <div class="text-sm text-gray-500">(none)</div>
+        </div>
+      </div>
+      <input id="slider" type="range" min="0" max="100" step="1" class="w-full" />
+      <button id="joinButton" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-500 rounded hover:bg-indigo-600">Join</button>
+    </div>
+  </div>
+  <script>
+    const SIGNAL_TITLE = "Microsoft.Teams.Calendar.NextMeeting.Title";
+    const SIGNAL_MINUTES = "Microsoft.Teams.Calendar.NextMeeting.MinutesUntilStart";
+    const SIGNAL_JOIN_URL = "Microsoft.Teams.Calendar.NextMeeting.JoinUrl";
+    let _iv = null;
+
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+      const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
+    }
+
+    function describeArc(x, y, radius, startAngle, endAngle) {
+      const start = polarToCartesian(x, y, radius, endAngle);
+      const end = polarToCartesian(x, y, radius, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+      return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+    }
+
+    function render(title, minutes) {
+      const titleElement = document.getElementById("title");
+      const numericValueElement = document.getElementById("numericValue");
+      const valueArcElement = document.getElementById("valueArc");
+      const sliderElement = document.getElementById("slider");
+
+      titleElement.textContent = title || "No Meeting Scheduled";
+      sliderElement.value = minutes || 0;
+
+      if (minutes !== undefined) {
+        numericValueElement.textContent = minutes.toFixed(0);
+        const arcColor = minutes > 10 ? "#10B981" : minutes > 5 ? "#FBBF24" : "#EF4444";
+        valueArcElement.setAttribute("stroke", arcColor);
+        const arcPath = describeArc(100, 90, 80, 0, (minutes / 100) * 180);
+        valueArcElement.setAttribute("d", arcPath);
+      } else {
+        numericValueElement.textContent = "--";
+        valueArcElement.setAttribute("d", "M10,90 A80,80 0 0,1 10,90");
+      }
+    }
+
+    document.getElementById("slider").addEventListener("input", function() {
+      const value = parseFloat(this.value);
+      window.setApiValue(SIGNAL_MINUTES, value);
+    });
+
+    document.getElementById("joinButton").addEventListener("click", function() {
+      const joinUrl = window.getApiValue(SIGNAL_JOIN_URL);
+      if (joinUrl) {
+        window.open(joinUrl, "_blank");
+      }
+    });
+
+    window.onVssSync = function(data) {
+      const title = data[SIGNAL_TITLE];
+      const minutes = data[SIGNAL_MINUTES];
+      render(title, minutes);
+    };
+
+    window.onWidgetLoaded = function(options) {
+      const title = window.getApiValue(SIGNAL_TITLE);
+      const minutes = window.getApiValue(SIGNAL_MINUTES);
+      render(title, minutes);
+    };
+
+    window.onWidgetUnloaded = function() {
+      if (_iv) { clearInterval(_iv); _iv = null; }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../tailwind.min.css">
+  <script defer src="../syncer.js"></script>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-gray-900 flex items-center justify-center" style="width:100%;height:100vh">
+  <div id="root" class="w-full h-full flex flex-col items-center justify-center gap-2 p-3">
+    <div class="flex flex-col items-center gap-2">
+      <div class="text-sm uppercase tracking-wide text-gray-400">Unread Chats</div>
+      <div id="badge" class="text-4xl font-bold text-white px-4 py-2 rounded-full bg-gray-700">0</div>
+      <div id="sender" class="text-lg text-gray-300">No new messages</div>
+      <div id="preview" class="text-sm text-gray-500">---</div>
+    </div>
+  </div>
+  <script>
+    const SIGNAL = "Microsoft.Teams.Chat.UnreadCount";
+    const SENDER_SIGNAL = "Microsoft.Teams.Chat.LastSender";
+    const PREVIEW_SIGNAL = "Microsoft.Teams.Chat.LastMessagePreview";
+
+    function renderUnreadCount(val) {
+      const badge = document.getElementById("badge");
+      badge.textContent = val;
+      badge.className = `text-4xl font-bold text-white px-4 py-2 rounded-full ${val > 0 ? 'bg-red-500' : 'bg-gray-700'}`;
+    }
+
+    function renderSender(sender) {
+      const senderElement = document.getElementById("sender");
+      senderElement.textContent = sender || "No new messages";
+    }
+
+    function renderPreview(preview) {
+      const previewElement = document.getElementById("preview");
+      previewElement.textContent = preview || "---";
+    }
+
+    function render(data) {
+      if (SIGNAL in data) renderUnreadCount(data[SIGNAL]);
+      if (SENDER_SIGNAL in data) renderSender(data[SENDER_SIGNAL]);
+      if (PREVIEW_SIGNAL in data) renderPreview(data[PREVIEW_SIGNAL]);
+    }
+
+    window.onVssSync = function(data) {
+      render(data);
+    };
+
+    window.onWidgetLoaded = function(options) {
+      const unreadCount = window.getApiValue(SIGNAL);
+      const sender = window.getApiValue(SENDER_SIGNAL);
+      const preview = window.getApiValue(PREVIEW_SIGNAL);
+
+      renderUnreadCount(unreadCount !== undefined ? unreadCount : 0);
+      renderSender(sender);
+      renderPreview(preview);
+    };
+
+    window.onWidgetUnloaded = function() {
+      // No timers to clear in this widget
+    };
+  </script>
+</body>
+</html>

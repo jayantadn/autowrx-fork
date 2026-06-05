@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../tailwind.min.css">
+  <script defer src="../syncer.js"></script>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-gray-900 flex items-center justify-center" style="width:100%;height:100vh">
+  <div id="root" class="w-full h-full flex flex-col items-center justify-center gap-2 p-3">
+    <div class="flex flex-col items-center gap-2">
+      <div class="text-sm uppercase tracking-widest text-gray-400">Upcoming Meeting</div>
+      <div id="title" class="text-lg font-semibold text-white text-center"></div>
+      <div class="relative flex items-center justify-center">
+        <svg id="gauge" width="150" height="75" viewBox="0 0 150 75" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10,75 A65,65 0 0,1 140,75" fill="none" stroke="#374151" stroke-width="10" />
+          <path id="valueArc" d="M10,75 A65,65 0 0,1 10,75" fill="none" stroke="#6366f1" stroke-width="10" stroke-linecap="round" />
+        </svg>
+        <div class="absolute text-4xl font-bold text-white" id="value">0</div>
+      </div>
+      <input type="range" id="slider" min="0" max="100" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+      <button id="joinButton" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-500 rounded hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400">Join</button>
+    </div>
+  </div>
+  <script>
+    const SIGNAL_TITLE = "Microsoft.Teams.Calendar.NextMeeting.Title";
+    const SIGNAL_MINUTES = "Microsoft.Teams.Calendar.NextMeeting.MinutesUntilStart";
+    const SIGNAL_JOIN_URL = "Microsoft.Teams.Calendar.NextMeeting.JoinUrl";
+    let _iv = null;
+
+    function renderTitle(title) {
+      const titleElement = document.getElementById("title");
+      titleElement.textContent = title || "No upcoming meeting";
+    }
+
+    function renderMinutes(minutes) {
+      const valueElement = document.getElementById("value");
+      const arcElement = document.getElementById("valueArc");
+      const sliderElement = document.getElementById("slider");
+
+      const min = 0;
+      const max = 100;
+      const percentage = Math.max(min, Math.min(max, minutes)) / max;
+
+      // Update text value
+      valueElement.textContent = Math.round(minutes);
+
+      // Update slider
+      sliderElement.value = minutes;
+
+      // Update arc
+      const startX = 10;
+      const startY = 75;
+      const endX = 140;
+      const endY = 75;
+      const radius = 65;
+      const angle = percentage * Math.PI; // Convert percentage to radians (0-180°)
+      const x = startX + radius * Math.cos(Math.PI - angle);
+      const y = startY - radius * Math.sin(Math.PI - angle);
+      const largeArcFlag = percentage > 0.5 ? 1 : 0;
+
+      arcElement.setAttribute("d", `M10,75 A65,65 0 ${largeArcFlag},1 ${x},${y}`);
+
+      // Update arc color
+      if (minutes > 10) {
+        arcElement.setAttribute("stroke", "#10B981"); // Green
+      } else if (minutes > 5) {
+        arcElement.setAttribute("stroke", "#F59E0B"); // Yellow
+      } else {
+        arcElement.setAttribute("stroke", "#EF4444"); // Red
+      }
+    }
+
+    function renderJoinButton(joinUrl) {
+      const button = document.getElementById("joinButton");
+      button.disabled = !joinUrl;
+      button.onclick = () => {
+        if (joinUrl) {
+          window.open(joinUrl, "_blank");
+        }
+      };
+    }
+
+    window.onVssSync = function(data) {
+      if (SIGNAL_TITLE in data) renderTitle(data[SIGNAL_TITLE]);
+      if (SIGNAL_MINUTES in data) renderMinutes(data[SIGNAL_MINUTES]);
+      if (SIGNAL_JOIN_URL in data) renderJoinButton(data[SIGNAL_JOIN_URL]);
+    };
+
+    window.onWidgetLoaded = function(options) {
+      const title = window.getApiValue(SIGNAL_TITLE);
+      const minutes = window.getApiValue(SIGNAL_MINUTES);
+      const joinUrl = window.getApiValue(SIGNAL_JOIN_URL);
+
+      renderTitle(title);
+      renderMinutes(minutes !== undefined ? minutes : 0);
+      renderJoinButton(joinUrl);
+
+      const sliderElement = document.getElementById("slider");
+      sliderElement.oninput = function() {
+        window.setApiValue(SIGNAL_MINUTES, parseFloat(this.value));
+      };
+    };
+
+    window.onWidgetUnloaded = function() {
+      if (_iv) {
+        clearInterval(_iv);
+        _iv = null;
+      }
+    };
+  </script>
+</body>
+</html>

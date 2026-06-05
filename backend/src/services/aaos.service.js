@@ -74,7 +74,10 @@ const initWebSocket = (httpServer) => {
  * @returns {Promise<object>} Rust service response data.
  */
 const forwardToRust = async (payload) => {
-  logger.info('[AAOS] Plugin Payload: %s', JSON.stringify(payload));
+  logger.info(
+    'PLUGIN PAYLOAD:\n%s',
+    JSON.stringify(payload, null, 2)
+  );
 
   const { serviceId, instanceId, operationId, eventGroupId } = payload.someip || {};
 
@@ -87,14 +90,25 @@ const forwardToRust = async (payload) => {
     ttl_ms: 1000,
   };
 
-  logger.info('[AAOS] Rust Payload: %s', JSON.stringify(rustPayload));
+  logger.info(
+    'RUST PAYLOAD:\n%s',
+    JSON.stringify(rustPayload, null, 2)
+  );
 
-  const response = await axios.post(RUST_SERVICE_URL, rustPayload, {
-    headers: { 'Content-Type': 'application/json' },
-    timeout: 10000,
-  });
-  logger.info('[AAOS] Rust service responded with status %d', response.status);
-  return response.data;
+  try {
+    const response = await axios.post(RUST_SERVICE_URL, rustPayload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 10000,
+    });
+    logger.info('[AAOS] Rust service responded with status %d', response.status);
+    return response.data;
+  } catch (err) {
+    console.error('AXIOS CODE:', err.code);
+    console.error('AXIOS MESSAGE:', err.message);
+    console.error('AXIOS STATUS:', err.response?.status);
+    console.error('AXIOS DATA:', err.response?.data);
+    throw err;
+  }
 };
 
 /**

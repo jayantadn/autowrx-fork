@@ -63,14 +63,33 @@ const initWebSocket = (httpServer) => {
 
 /**
  * Forward a plugin request payload to the Rust service at RUST_SERVICE_URL.
- * Returns the Rust service's response data.
  *
- * @param {object} payload - Any JSON payload from the frontend plugin.
+ * The plugin sends SOME/IP identifiers as hex strings:
+ *   { signalName, mode, someip: { serviceId, instanceId, operationId, eventGroupId } }
+ *
+ * The Rust service requires decimal integers in its own schema:
+ *   { service_id, instance_id, event_id, method_id, operation, ttl_ms }
+ *
+ * @param {object} payload - JSON payload from the frontend plugin.
  * @returns {Promise<object>} Rust service response data.
  */
 const forwardToRust = async (payload) => {
-  logger.info('[AAOS] Forwarding request to Rust service: %s', JSON.stringify(payload));
-  const response = await axios.post(RUST_SERVICE_URL, payload, {
+  logger.info('[AAOS] Plugin Payload: %s', JSON.stringify(payload));
+
+  const { serviceId, instanceId, operationId, eventGroupId } = payload.someip || {};
+
+  const rustPayload = {
+    service_id: parseInt(serviceId, 16),
+    instance_id: parseInt(instanceId, 16),
+    event_id: parseInt(eventGroupId, 16),
+    method_id: parseInt(operationId, 16),
+    operation: 'enable_event',
+    ttl_ms: 1000,
+  };
+
+  logger.info('[AAOS] Rust Payload: %s', JSON.stringify(rustPayload));
+
+  const response = await axios.post(RUST_SERVICE_URL, rustPayload, {
     headers: { 'Content-Type': 'application/json' },
     timeout: 10000,
   });

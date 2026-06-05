@@ -27,3 +27,4 @@ module.exports.customApiSchemaController = require('./customApiSchema.controller
 module.exports.customApiSetController = require('./customApiSet.controller');
 // Inventory controllers removed
 module.exports.teamsController = require('./teams.controller');
+module.exports.aaosController = require('./aaos.controller');

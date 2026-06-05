@@ -34,3 +34,4 @@ module.exports.customApiSchemaService = require('./customApiSchema.service');
 module.exports.customApiSetService = require('./customApiSet.service');
 // Inventory services removed
 module.exports.teamsService = require('./teams.service');
+module.exports.aaosService = require('./aaos.service');

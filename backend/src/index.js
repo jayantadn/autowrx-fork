@@ -12,7 +12,7 @@ const config = require('./config/config');
 const logger = require('./config/logger');
 const initializeRoles = require('./scripts/initializeRoles');
 const { init } = require('./config/socket');
-const { aaosService } = require('./services');
+
 const { setupScheduledCheck, assignAdmins, convertLogsCap } = require('./scripts');
 const { seedPredefinedSiteConfigs } = require('./services/siteConfig.service');
 const { seedProjectTemplates } = require('./services/projectTemplate.service');
@@ -38,6 +38,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
     logger.info(`Listening to port ${config.port}`);
   });
   init(server);
+  
 });
 
 const exitHandler = () => {

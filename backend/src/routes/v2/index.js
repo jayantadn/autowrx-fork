@@ -11,7 +11,7 @@ const userManagementRoutes = require('./user-management');
 const vehicleDataRoutes = require('./vehicle-data');
 const contentRoutes = require('./content');
 const systemRoutes = require('./system');
-const aaosRoutes = require('./aaos');
+
 
 const router = express.Router();
 
@@ -32,11 +32,7 @@ const defaultRoutes = [
     path: '/',
     route: systemRoutes,
   },
-  {
-    // AAOS bridge: POST /v2/aaos/request, POST /v2/aaos/response, GET /v2/aaos/latest
-    path: '/aaos',
-    route: aaosRoutes,
-  },
+  
 ];
 
 defaultRoutes.forEach((route) => {

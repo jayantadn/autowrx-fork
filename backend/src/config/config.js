@@ -58,13 +58,20 @@ const envVarsSchema = Joi.object()
     // GenAI service
     GENAI_URL: Joi.string().description('GenAI service url'),
     // Kit server
-    KIT_SERVER_URL: Joi.string().description('Kit server url'),
+    // Used both by the existing /kit-server HTTP proxy (app.js) and by the
+    // AAOS kit client (services/aaosKit.service.js), which dials out to this
+    // URL instead of listening on localhost for the plugin.
+    KIT_SERVER_URL: Joi.string().default('https://kit.digitalauto.tech').description('Kit Manager server url'),
     // AAOS bridge
     AAOS_RUST_SERVICE_URL: Joi.string().default('http://127.0.0.1:8080/config').description('AAOS Rust bridge service URL'),
     AAOS_OPERATION: Joi.string().default('enable_event').description('AAOS Rust operation'),
     AAOS_SUBSCRIBE_METHOD_ID: Joi.number().integer().min(0).max(0xffff).default(0x0010).description('SOME/IP subscribe method ID'),
     AAOS_TTL_MS: Joi.number().integer().min(1).default(1000).description('AAOS subscription TTL in milliseconds'),
     AAOS_REQUEST_TIMEOUT_MS: Joi.number().integer().min(1).default(10000).description('AAOS Rust request timeout in milliseconds'),
+    // AAOS Kit Manager identity. Leave AAOS_KIT_ID blank to auto-generate a
+    // stable one on first run (saved to backend/.aaos-kit-id).
+    AAOS_KIT_ID: Joi.string().allow('').description('Stable kit_id this backend registers under with Kit Manager'),
+    AAOS_PUSH_INTERVAL_MS: Joi.number().integer().min(50).default(500).description('How often to re-send the latest AAOS value to subscribed clients'),
     // Admin emails
     ADMIN_EMAILS: Joi.string().description('Admin emails'),
     ADMIN_PASSWORD: Joi.string().description('Admin password'),
@@ -192,6 +199,8 @@ const config = {
     subscribeMethodId: envVars.AAOS_SUBSCRIBE_METHOD_ID,
     ttlMs: envVars.AAOS_TTL_MS,
     requestTimeoutMs: envVars.AAOS_REQUEST_TIMEOUT_MS,
+    kitId: envVars.AAOS_KIT_ID || '',
+    pushIntervalMs: envVars.AAOS_PUSH_INTERVAL_MS,
   },
   openai: {
     apiKey: envVars.OPENAI_API_KEY,
